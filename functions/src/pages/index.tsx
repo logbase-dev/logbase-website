@@ -47,9 +47,9 @@ export default function HomePage() {
                         <div className="box-feature__info">
                             <h3 className="heading-5 box-feature__title" style={{ color: 'white' }}>행동과 데이터, 그리고 성장을 한 곳에 - Logbase와 나만의 가치를 드러내고 새로운 협업을 경험하세요.</h3>
                             <p>
-                                1.나의 기록은 곧 나의 성장 - Logbase와 시작하세요.<br />
-                                2.행동데이터로 나의 고객을 이해하고 증명하며, Logbase와 함께 성장하세요.<br />
-                                3.ILOG로 시작하는 데이터 여정 - 성과와 가치를 모두 연결합니다.<br />  
+                                나의 기록은 곧 나의 성장, Logbase와 시작하세요.<br /><br />
+                                행동데이터로 나의 고객을 이해하고 증명하며, Logbase와 함께 성장하세요.<br /><br />
+                                ILOG로 시작하는 데이터 여정, 성과와 가치를 모두 연결합니다.<br /><br />
                             </p>
                         </div>
                         <div className="box-feature__photo">
@@ -70,18 +70,20 @@ export default function HomePage() {
                         <div className="l-2cols__col l-2cols__col--large">
                             <div className="c-heading c-heading--small">
                                 <div className="c-heading__top">
-                                <h2 className="text-default">Professional Plans</h2>
-          </div>
+                                    <h2 className="text-default">ILOG for Professional</h2>
+                                </div>
                                 <div className="c-heading__middle">
-                                    <h3 className="heading-5 l-2cols__title">A necessary investment for your studio or your personal brand.</h3>
+                                    <h3 className="heading-5 l-2cols__title">데이터에 강한 조직을 만드는 가장 빠른 투자, 측정할 수 있어야 성장합니다.</h3>
                                 </div>
                             </div>
                         </div>
 
                         <div className="l-2cols__col">
                             <p className="hidden-lg">&nbsp;</p>
-                            <p><strong>Awwwards is the ideal showcase for your business or personal brand, a trusted directory where millions of users visit every year, looking for professionals to make their digital vision become a reality.</strong></p>
-                            <p>Your presence in our Directory will get you unparalleled visibility, recognition and leads for your business.<br /></p>
+                            <p><strong>표준 스키마, 자동 로그 QA, 재현 가능한 분석—ILOG 커뮤니티와 함께 데이터를 축적하고 측정하세요.
+                            당신의 제품 여정이 보이는 로그로 연결되고, 구독자→팬→고객으로 확장됩니다.</strong></p>
+                            <p>ILOG는 제품·마케팅 전반의 행동데이터를 일관되게 정의하고, 깨끗하게 수집하며, 즉시 활용 가능하게 만듭니다.
+                            지금 시작하면 속도, 신뢰, 리드(전환) 가 따라옵니다.<br /></p>
                         </div>
                     </div>
 
@@ -267,7 +269,7 @@ export default function HomePage() {
             <div className="block">
                 <div className="inner">
 
-                    {/* 피처 헤더 */}
+                    {/* 피처 헤더 
                     <div className="c-heading text-center">
                         <div className="c-heading__top">
                             <h2 className="text-default">What you'll get </h2>
@@ -281,6 +283,32 @@ export default function HomePage() {
                             </div>
                         </div>
                     </div>
+                    피처 헤더 */}
+
+                    {/* ILOG_DEMO_DEFINITION 블럭 image start */}
+                    <div className="anchor-section">
+                        <div className="block">
+                            <div className="inner">
+                                <div className="grid-features">
+                                    <div className="box-feature box-feature--s2-low is-double" style={{ width: '100%', height: '800px' }}>
+                                        <div className="box-feature__photo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                            {/* ILOG_DEMO_DEFINITION 비디오 */}
+                                                                                         <video
+                                             src="/images/ILOG_DEMO_DEFINITION.mov"
+                                             autoPlay
+                                             loop
+                                             muted
+                                             playsInline
+                                             className="rounded-xl shadow-lg object-cover object-top"
+                                             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                             />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* ILOG_DEMO_DEFINITION 블럭 image end */}
 
                     {/* 피처 내용 */}
                     <div className="grid-features">
@@ -376,7 +404,7 @@ export default function HomePage() {
         </div>
 
         {/* 플랜 테이블 블럭 start
-        <div className="anchor-section" id="pro-member">
+        <div className="anchor-section" id="background">
             <div className="block">
                 <div className="inner">
                     <div className="c-heading text-center">
@@ -503,7 +531,7 @@ export default function HomePage() {
 
 
         {/* 플랜 테이블 블럭 start
-        <div className="anchor-section" id="pro-team">
+        <div className="anchor-section" id="differentiator">
             <div className="block">
                 <div className="inner">
                     <div className="c-heading text-center">
@@ -1531,13 +1559,13 @@ export default function HomePage() {
             <div className="block">
                 <div className="inner">
                     <div className="grid-features">
-                        <div className="box-feature box-feature--s2-low--dark is-double">
+                        <div className="box-feature box-feature--s2-low is-double" style={{ backgroundColor: '#000a17' }}>
                             <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Start now and increase your recognition as a professional.</h3>
+                                <h3 className="heading-5 box-feature__title" style={{ color: 'white' }}>Start now and increase your recognition as a professional.</h3>
                                 <p><a href="https://www.awwwards.com/pro#price-table" className="button button--large--outline--white--rounded">Start Pro Membership</a></p>
                             </div>
                             <div className="box-feature__photo">
-                                <img src="/images/bg-5.png" alt="" />
+                                <img src="/images/bg-ai.png" alt="" />
                             </div>
                         </div>
                     </div>
@@ -1557,7 +1585,6 @@ export default function HomePage() {
                     </div>
                     
                     <div className="menu-float__wrapper">
-
                         <div className="menu-float__top">
                             <div className="menu-float__menu menu-main" id="menu-main">
                                 <div className="menu-float__menu-content">
@@ -1704,10 +1731,10 @@ export default function HomePage() {
                                     </div>
                                     <ul className="menu-float__nav">
                                         <li><a className="menu-float__item js-menu-anchor" href="#features">Features</a></li>
-                                        <li><a className="menu-float__item js-menu-anchor" href="https://www.awwwards.com/pro#pro-member">Background</a></li>
-                                        <li><a className="menu-float__item js-menu-anchor" href="https://www.awwwards.com/pro#pro-team">Differentiator</a></li>
-                                        <li><a className="menu-float__item js-menu-anchor" href="https://www.awwwards.com/pro#pro-int">Our Mission</a></li>
-                                        <li><a className="menu-float__item js-menu-anchor" href="https://www.awwwards.com/pro#price-table">About Us</a></li>
+                                        <li><a className="menu-float__item js-menu-anchor" href="#Background">Background</a></li>
+                                        <li><a className="menu-float__item js-menu-anchor" href="#">Differentiator</a></li>
+                                        <li><a className="menu-float__item js-menu-anchor" href="#OurMission">Our Mission</a></li>
+                                        <li><a className="menu-float__item js-menu-anchor" href="#AboutUs">About Us</a></li>
                                     </ul>
                                 </div>
                             </div>

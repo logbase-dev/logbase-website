@@ -6,14 +6,37 @@ import { useState } from 'react';
 import InquiryForm from './InquiryForm';
 import NewsletterModal from './NewsletterModal';
 import LoginModal from './LoginModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
+  const { user, loading, logout } = useAuth();
   const [showInquiry, setShowInquiry] = useState(false);
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      alert('로그아웃되었습니다.');
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+      alert('로그아웃에 실패했습니다.');
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // RSS 피드 페이지로 검색 쿼리와 함께 이동
+      window.location.href = `/rss-feed?search=${encodeURIComponent(searchQuery.trim())}`;
+    }
+  };
 
   const handleRssClick = async () => {
     let isCollecting = false;
@@ -556,34 +579,66 @@ export default function Header() {
 							*/}
 						</nav>
 						<div className="header-main__search">
-							<div className="search-form">
+							<form onSubmit={handleSearch} className="search-form">
 								<div className="search-form__field">
 									<button type="submit" className="search-form__button" aria-label="Search">
 										<svg className="ico-svg" viewBox="0 0 20 20" width="14">
 											<use xlinkHref="/"></use>
 										</svg>
 									</button>
-									<input type="text" placeholder="Search by Inspiration" className="search-form__input " data-action="focus->search#show keyup->search#search" data-search-target="input" />
+									<input 
+										type="text" 
+										placeholder="RSS 피드 검색..." 
+										className="search-form__input" 
+										value={searchQuery}
+										onChange={(e) => setSearchQuery(e.target.value)}
+									/>
 								</div>
-							</div>
+							</form>
 						</div>
 						<div className="header-main__right">
-							<div className="header-main__user">
-								<strong className="header-main__link hidden-sm" onClick={() => setShowLogin(true)}>Log in</strong>
-								{/*<strong className="header-main__link hidden-sm" data-controller="login" data-action="click->login#register">Sign Up</strong>*/}
-								<span className="header-main__ico" onClick={() => setShowLogin(true)}>
-									<svg className="ico-svg" viewBox="0 0 20 20" width="20">
-										<use xlinkHref="/"></use>
-									</svg>
-								</span>
-								<div id="g_id_onload" data-client_id="67367874134-drekvs51ripc1p92r1hpcntjk1jfmqka.apps.googleusercontent.com" data-login_uri="https://www.awwwards.com/login-google-one-tap" data-_destination="/pro">
-								</div>
+													<div className="header-main__user">
+							{loading ? (
+								<>
+									<strong className="header-main__link hidden-sm">Loading...</strong>
+									<span className="header-main__ico">
+										<svg className="ico-svg" viewBox="0 0 20 20" width="20">
+											<use xlinkHref="/"></use>
+										</svg>
+									</span>
+								</>
+							) : user ? (
+								<>
+									<strong className="header-main__link hidden-sm" onClick={handleLogout}>
+										Log out ({user.email})
+									</strong>
+									<span className="header-main__ico" onClick={handleLogout}>
+										<svg className="ico-svg" viewBox="0 0 20 20" width="20">
+											<use xlinkHref="/"></use>
+										</svg>
+									</span>
+								</>
+							) : (
+								<>
+									<strong className="header-main__link hidden-sm" onClick={() => setShowLogin(true)}>Log in</strong>
+									<span className="header-main__ico" onClick={() => setShowLogin(true)}>
+										<svg className="ico-svg" viewBox="0 0 20 20" width="20">
+											<use xlinkHref="/"></use>
+										</svg>
+									</span>
+								</>
+							)}
+							<div id="g_id_onload" data-client_id="67367874134-drekvs51ripc1p92r1hpcntjk1jfmqka.apps.googleusercontent.com" data-login_uri="https://www.awwwards.com/login-google-one-tap" data-_destination="/pro">
 							</div>
+
+						</div>
 
 							<div className="header-main__bts">
 								<a href="#" className="button button--small--rounded" onClick={() => setShowNewsletter(true)}>뉴스레터 신청</a>
 								<a href="#" className="button button--small--outline--rounded" onClick={() => setShowInquiry(true)}>문의하기</a>
-								<a href="#" className="button button--small--rounded" onClick={() => handleRssClick()}>RSS 수집</a>
+								{user && (
+									<a href="#" className="button button--small--rounded" onClick={() => handleRssClick()}>RSS 수집</a>
+								)}
 							</div>
 						</div>
 					</div>

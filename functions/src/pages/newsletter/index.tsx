@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NewsletterMeta {
   title: string;
@@ -29,6 +30,7 @@ interface SendFormData {
 }
 
 export default function NewsletterPage() {
+  const { user } = useAuth();
   const [newsletters, setNewsletters] = useState<NewsletterMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSendModal, setShowSendModal] = useState(false);
@@ -216,22 +218,24 @@ export default function NewsletterPage() {
     <div className="container">
       <div className="header">
         <h1>뉴스레터 목록</h1>
-        <div className="header-buttons">
-          <button 
-            type="button" 
-            className="btn-subscribers"
-            onClick={() => window.location.href = '/newsletter/subscribers'}
-          >
-            신청자 관리
-          </button>
-          <button 
-            type="button" 
-            className="btn-new"
-            onClick={() => window.location.href = '/newsletter/write'}
-          >
-            새 뉴스레터 작성
-          </button>
-        </div>
+        {user && (
+          <div className="header-buttons">
+            <button 
+              type="button" 
+              className="btn-subscribers"
+              onClick={() => window.location.href = '/newsletter/subscribers'}
+            >
+              신청자 관리
+            </button>
+            <button 
+              type="button" 
+              className="btn-new"
+              onClick={() => window.location.href = '/newsletter/write'}
+            >
+              새 뉴스레터 작성
+            </button>
+          </div>
+        )}
       </div>
       
       <table>
@@ -258,24 +262,28 @@ export default function NewsletterPage() {
                     >
                       미리보기
                     </button>
-                    <button 
-                      type="button" 
-                      className="btn-send"
-                      onClick={() => handleSendClick(item)}
-                      title="이메일 발송"
-                    >
-                      📧 발송
-                    </button>
-                    <Link href={`/newsletter/edit/${encodeURIComponent(item.filename)}`}>
-                      <button type="button" className="btn-edit">편집</button>
-                    </Link>
-                    <button 
-                      type="button" 
-                      className="btn-delete"
-                      onClick={() => handleDelete(item.filename)}
-                    >
-                      삭제
-                    </button>
+                    {user && (
+                      <>
+                        <button 
+                          type="button" 
+                          className="btn-send"
+                          onClick={() => handleSendClick(item)}
+                          title="이메일 발송"
+                        >
+                          📧 발송
+                        </button>
+                        <Link href={`/newsletter/edit/${encodeURIComponent(item.filename)}`}>
+                          <button type="button" className="btn-edit">편집</button>
+                        </Link>
+                        <button 
+                          type="button" 
+                          className="btn-delete"
+                          onClick={() => handleDelete(item.filename)}
+                        >
+                          삭제
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               );

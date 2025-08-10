@@ -14,8 +14,6 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/images/favicon.svg" />
       </Head>
-      <Script src="/162.30ed95ee.js" strategy="beforeInteractive" />
-      <Script src="/966.e2e3d2ba.js" strategy="beforeInteractive" />
       <div className="antialiased">
         <Header />
         <Component {...pageProps} />

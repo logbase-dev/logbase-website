@@ -26,7 +26,7 @@ a{text-decoration:none}
 .grid__col-12{grid-column:auto/span 12}
 @media(max-width: 576px){.grid{display:flex;flex-direction:column}
 [class*=grid__col-]{grid-column:auto}}
-@font-face{font-family:"Inter Tight";src:url("https://assets.awwwards.com/assets/fonts/inter-tight/InterTight-VariableFont_wght.ttf") format("truetype");font-weight:100 900}
+@font-face{font-family:"Inter Tight";src:url("/fonts/InterTight-VariableFont_wght.ttf") format("truetype");font-weight:100 900}
 body:has(.nav-filters__item.is-open){overflow-y:hidden}
 @media(max-width: 1000px){body:has(.nav-filters__item.is-open) #header{z-index:0}
 body:has(.nav-filters__item.is-open) .nav-filters__container{background:rgba(0,0,0,0);pointer-events:none}
