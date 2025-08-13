@@ -3,7 +3,8 @@ import { collection, addDoc, query, where, getDocs, updateDoc, doc, serverTimest
 import { db } from '@/lib/firebase';
 
 // Slack Webhook URL - 하드코딩으로 통일
-const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+
 
 interface NewsletterRequest {
   name: string;

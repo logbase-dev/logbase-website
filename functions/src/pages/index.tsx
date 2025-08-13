@@ -65,7 +65,7 @@ export default function HomePage() {
                         </div>
                     </div>
 
-                    {/* Professional Plans 텍스트 */}
+                    {/* ILOG for Professional 텍스트 
                     <div className="l-2cols">
                         <div className="l-2cols__col l-2cols__col--large">
                             <div className="c-heading c-heading--small">
@@ -86,7 +86,8 @@ export default function HomePage() {
                             지금 시작하면 속도, 신뢰, 리드(전환) 가 따라옵니다.<br /></p>
                         </div>
                     </div>
-
+                     ILOG for Professional 텍스트 */}
+                    
                 </div>
             </div>
             {/* main 문구, 이미지, Professional Plans 텍스트 블럭 end */}
@@ -284,6 +285,30 @@ export default function HomePage() {
                         </div>
                     </div>
                     피처 헤더 */}
+
+
+
+                    {/* ILOG for Professional 텍스트 */}
+                    <div className="l-2cols">
+                        <div className="l-2cols__col l-2cols__col--large">
+                            <div className="c-heading c-heading--small">
+                                <div className="c-heading__top">
+                                    <h2 className="text-default">ILOG for Professional</h2>
+                                </div>
+                                <div className="c-heading__middle">
+                                    <h3 className="heading-5 l-2cols__title">데이터에 강한 조직을 만드는 가장 빠른 투자, 측정할 수 있어야 성장합니다.</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="l-2cols__col">
+                            <p className="hidden-lg">&nbsp;</p>
+                            <p><strong>표준 스키마, 자동 로그 QA, 재현 가능한 분석—ILOG 커뮤니티와 함께 데이터를 축적하고 측정하세요.
+                            당신의 제품 여정이 보이는 로그로 연결되고, 구독자→팬→고객으로 확장됩니다.</strong></p>
+                            <p>ILOG는 제품·마케팅 전반의 행동데이터를 일관되게 정의하고, 깨끗하게 수집하며, 즉시 활용 가능하게 만듭니다.
+                            지금 시작하면 속도, 신뢰, 리드(전환) 가 따라옵니다.<br /></p>
+                        </div>
+                    </div>                    
 
                     {/* ILOG_DEMO_DEFINITION 블럭 image start */}
                     <div className="anchor-section">
@@ -1013,25 +1038,25 @@ export default function HomePage() {
 
                                 </div>
                                 <div>
-                                                                        <a href="https://www.awwwards.com/plans/international-plan" className="button button--large--outline--rounded">Select International</a>
-                                                                </div>
+                                    <a href="https://www.awwwards.com/plans/international-plan" className="button button--large--outline--rounded">Select International</a>
+                                </div>
                             </div>
                             <div className="plan__footer">
                                 <ul className="plan__list">
                                     <li>All Pro features</li>
-                                                                        <li>Featured in 5 distinct categories</li>
-                                                                        <li>50% discount on website submissions</li>
-                                                                        <li>50% discount for products on market</li>
-                                                                        <li>Featured Worldwide in Directory</li>
-                                                                        <li>Personal assistance</li>
-                                                                        <li>Featured on Directory</li>
-                                                                        <li>Featured on homepage</li>
-                                                                        <li>One social media mention</li>
-                                                                        <li>Animated avatar (Coming Soon)</li>
-                                                                        <li>Access to All Courses</li>
-                                                                        <li>5+ new courses added each month</li>
-                                                                        <li>Streaming supports up to 5 simultaneous IP connections</li>
-                                                                </ul>
+                                    <li>Featured in 5 distinct categories</li>
+                                    <li>50% discount on website submissions</li>
+                                    <li>50% discount for products on market</li>
+                                    <li>Featured Worldwide in Directory</li>
+                                    <li>Personal assistance</li>
+                                    <li>Featured on Directory</li>
+                                    <li>Featured on homepage</li>
+                                    <li>One social media mention</li>
+                                    <li>Animated avatar (Coming Soon)</li>
+                                    <li>Access to All Courses</li>
+                                    <li>5+ new courses added each month</li>
+                                    <li>Streaming supports up to 5 simultaneous IP connections</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -1578,152 +1603,10 @@ export default function HomePage() {
         <div className="menu-float js-menufloat-show is-visible">
             <div className="inner">
                 <div className="menu-float__inner">
-                    <div className="bt-nav bt-nav--left js-gototop is-hidden">
-                        <svg width="18" height="22" viewBox="0 0 18 22">
-                            <path fillRule="evenodd" clipRule="evenodd" d="M8.69899 3.08174L7.76441 4.02584L7.75493 4.0258L1.3542 10.4265L0.0117182 9.08405L6.41245 2.68332L8.69707 0.398693L10.0396 1.74118L17.4565 9.15817L16.1159 10.4893L9.66059 4.0339L8.69899 3.08174ZM8.22508 5.69881L10.4911 7.2949L10.5527 21.8672L8.29342 21.8576L8.22508 5.69881Z"></path>
-                        </svg>
-                    </div>
                     
                     <div className="menu-float__wrapper">
-                        <div className="menu-float__top">
-                            <div className="menu-float__menu menu-main" id="menu-main">
-                                <div className="menu-float__menu-content">
-                                    <div className="menu-float__menu--main">
-                                        <div className="menu-float__menu-col style-2 ">
-                                            <div className="menu-float__menu-section">Awards</div>
-                                            <ul className="menu-float__menu-nav">
-                                                <li>
-                                                    <a href="https://www.awwwards.com/websites/" className="menu-float__sub-item ">Winners
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="https://www.awwwards.com/websites/nominees/" className="menu-float__sub-item ">
-                                                        Nominees
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="https://www.awwwards.com/websites/sites_of_the_day/" className="menu-float__sub-item">
-                                                        Sites of the Day
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="https://www.awwwards.com/websites/sites_of_the_month/" className="menu-float__sub-item">
-                                                        Sites of the Month
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div className="menu-float__menu-col style-1">
-                                            <div className="menu-float__menu-row style-1 ">
-                                                <div className="menu-float__menu-section">Inspiration</div>
-                                                <ul className="menu-float__menu-nav">
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/collections/" className="menu-float__sub-item">
-                                                            Collections
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/elements/" className="menu-float__sub-item">
-                                                            Elements
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div className="menu-float__menu-row style-1">
-                                                <div className="menu-float__menu-section">Academy</div>
-                                                <ul className="menu-float__menu-nav">
-
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/academy/" className="menu-float__sub-item">
-                                                            Courses
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/masterclassNamees/" className="menu-float__sub-item">
-                                                            MasterclassNamees
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div className="menu-float__menu-col style-1 ">
-                                            <div className="menu-float__menu-row style-1 ">
-                                                <div className="menu-float__menu-section">Directory</div>
-                                                <ul className="menu-float__menu-nav">
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/directory/homepage/" className="menu-float__sub-item ">
-                                                            Professionals
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/directory/international/" className="menu-float__sub-item">
-                                                            Internationals
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/directory/freelance/" className="menu-float__sub-item">
-                                                            Freelancers
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/directory/agency-studio/" className="menu-float__sub-item ">
-                                                            Agencies &amp; Studios
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div className="menu-float__menu-col style-1 ">
-                                            <div className="menu-float__menu-row style-1 ">
-                                                <div className="menu-float__menu-section">w.</div>
-                                                <ul className="menu-float__menu-nav">
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/blog/" className="menu-float__sub-item">
-                                                            Blog
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/jobs/" className="menu-float__sub-item">
-                                                            Jobs
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/jury/" className="menu-float__sub-item ">
-                                                            Jury
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/market/" className="menu-float__sub-item ">Products</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="https://www.awwwards.com/honors/nominees" className="menu-float__sub-item ">
-                                                            Awards Honors &nbsp;<span className="budget-tag budget-tag--solid--white">New</span>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="menu-float__menu" id="menu-filters">
-                                <div className="menu-float__menu-content"></div>
-                            </div>
-                        </div>
-
-
                         {/* 메뉴 블럭 start logo */}
                         <div className="menu-float__bottom">
-                            <div className="menu-float__layout menu-float__layout--primary">
-                                <div className="menu-float__content">
-                                    <a href="/" className="menu-float__logo" aria-label="logbase home page">
-                                        <svg width="30" height="16" viewBox="0 0 30 16">
-                                            <path d="m18.4 0-2.803 10.855L12.951 0H9.34L6.693 10.855 3.892 0H0l5.012 15.812h3.425l2.708-10.228 2.709 10.228h3.425L22.29 0h-3.892ZM24.77 13.365c0 1.506 1.12 2.635 2.615 2.635C28.879 16 30 14.87 30 13.365c0-1.506-1.12-2.636-2.615-2.636s-2.615 1.13-2.615 2.636Z"></path>
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
-
                             <div className="menu-float__layout menu-float__layout--secondary">
                                 <div className="menu-float__content">
                                     <div className="menu-float__progress">
@@ -1740,7 +1623,6 @@ export default function HomePage() {
                             </div>
                         </div>
                         {/* 메뉴 블럭 end logo */}
-
                     </div>
 
                 </div>

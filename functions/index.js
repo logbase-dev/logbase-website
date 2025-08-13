@@ -5,12 +5,13 @@ const next = require('next');
 const admin = require('firebase-admin');
 const axios = require('axios');
 const fs = require('fs').promises;
+const config = require('./config');
 
 // Firebase Admin SDK 초기화
 admin.initializeApp();
 
-// Slack Webhook URL 직접 설정 (임시)
-const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+// 환경 설정 로그 출력
+config.logEnvironment();
 
 // Next.js 앱 설정
 const dev = false;
@@ -41,20 +42,22 @@ async function initializeNextApp() {
 }
 
 // Slack 메시지 전송 함수
-async function sendSlackMessage(message) {
-  // Slack webhook URL이 설정되지 않은 경우 건너뛰기
-  if (!SLACK_WEBHOOK_URL) {
-    console.warn('⚠️ SLACK_WEBHOOK_URL이 설정되지 않았습니다. Slack 알림을 건너뜁니다.');
-    return;
-  }
-
+async function sendSlackMessage(message, type = 'monitoring') {
   try {
-    await axios.post(SLACK_WEBHOOK_URL, {
+    const webhookUrl = await config.getSlackWebhookUrl(type);
+    
+    // Slack webhook URL이 설정되지 않은 경우 건너뛰기
+    if (!webhookUrl) {
+      console.warn(`⚠️ ${type} SLACK_WEBHOOK_URL이 설정되지 않았습니다. Slack 알림을 건너뜁니다.`);
+      return;
+    }
+
+    await axios.post(webhookUrl, {
       text: message
     });
-    console.log('✅ Slack 메시지 전송 성공');
+    console.log(`✅ ${type} Slack 메시지 전송 성공`);
   } catch (error) {
-    console.error('❌ Slack 메시지 전송 실패:', error.message);
+    console.error(`❌ ${type} Slack 메시지 전송 실패:`, error.message);
   }
 }
 
@@ -167,7 +170,7 @@ exports.scheduledRSSCollection = onSchedule({
   timeoutSeconds: 540,
   memory: '1GiB'
 }, async (event) => {
-  console.log('⏰ RSS 자동 수집 스케줄러 실행:', new Date().toLocaleString('ko-KR'));
+  console.log('⏰ RSS 자동 수집 스케줄러 실행:', new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }));
   await collectRSSFeeds();
 });
 
@@ -207,7 +210,7 @@ exports.contactToSlack = onRequest({
     
     const slackMessage = `새로운 문의가 도착했습니다!\n\n이름: ${name}\n이메일: ${email}\n메시지: ${message}`;
     
-    await sendSlackMessage(slackMessage);
+    await sendSlackMessage(slackMessage, 'inquiry');
     
     res.json({ success: true, message: '메시지가 성공적으로 전송되었습니다.' });
   } catch (error) {

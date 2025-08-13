@@ -8,3 +8,8 @@ typings/
 # Node.js dependency directory
 node_modules/
 *.local
+
+# Environment variables (보안)
+.env
+.env.local
+.env.*.local

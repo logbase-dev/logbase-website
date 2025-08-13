@@ -21,7 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Slack webhook URL - 하드코딩으로 통일
-      const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+      const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+      
 
       const slackMessage: any = {
         text: '🆕 새로운 문의의 접수',

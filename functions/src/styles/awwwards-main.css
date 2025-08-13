@@ -2012,3 +2012,7 @@ input[type=search].choices__input::-webkit-search-cancel-button{display:none}
 .vjs-youtube.vjs-user-inactive .vjs-iframe-blocker { display: block; }
 .vjs-youtube .vjs-poster { background-size: cover; }
 .vjs-youtube-mobile .vjs-big-play-button { display: none; }
+
+.footer__top__right{display:flex;gap:12px;height:var(--sf-height);margin-left:clamp(8px,3vw,20px);margin-bottom:clamp(40px,4vw,150px);align-items:right;}
+.footer__bts{display:flex;gap:12px}
+.footer__bts .button{font-weight:var(--font-medium)}

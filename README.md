@@ -1,6 +1,6 @@
-# Logbase Blog - Next.js Version
+# Logbase Website - Next.js Version
 
-This is a Next.js version of the Logbase Blog project. The UI has been migrated from Astro to Next.js while maintaining the same design and functionality.
+This is a Next.js version of the Logbase Website project. The UI has been migrated from Astro to Next.js while maintaining the same design and functionality.
 
 ## Features
 

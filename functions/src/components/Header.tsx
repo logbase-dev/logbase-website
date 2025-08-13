@@ -597,41 +597,40 @@ export default function Header() {
 							</form>
 						</div>
 						<div className="header-main__right">
-													<div className="header-main__user">
-							{loading ? (
-								<>
-									<strong className="header-main__link hidden-sm">Loading...</strong>
-									<span className="header-main__ico">
-										<svg className="ico-svg" viewBox="0 0 20 20" width="20">
-											<use xlinkHref="/"></use>
-										</svg>
-									</span>
-								</>
-							) : user ? (
-								<>
-									<strong className="header-main__link hidden-sm" onClick={handleLogout}>
-										Log out ({user.email})
-									</strong>
-									<span className="header-main__ico" onClick={handleLogout}>
-										<svg className="ico-svg" viewBox="0 0 20 20" width="20">
-											<use xlinkHref="/"></use>
-										</svg>
-									</span>
-								</>
-							) : (
-								<>
-									<strong className="header-main__link hidden-sm" onClick={() => setShowLogin(true)}>Log in</strong>
-									<span className="header-main__ico" onClick={() => setShowLogin(true)}>
-										<svg className="ico-svg" viewBox="0 0 20 20" width="20">
-											<use xlinkHref="/"></use>
-										</svg>
-									</span>
-								</>
-							)}
-							<div id="g_id_onload" data-client_id="67367874134-drekvs51ripc1p92r1hpcntjk1jfmqka.apps.googleusercontent.com" data-login_uri="https://www.awwwards.com/login-google-one-tap" data-_destination="/pro">
+							<div className="header-main__user">
+								{loading ? (
+									<>
+										<strong className="header-main__link hidden-sm">Loading...</strong>
+										<span className="header-main__ico">
+											<svg className="ico-svg" viewBox="0 0 20 20" width="20">
+												<use xlinkHref="/"></use>
+											</svg>
+										</span>
+									</>
+								) : user ? (
+									<>
+										<strong className="header-main__link hidden-sm" onClick={handleLogout}>
+											Log out ({user.email})
+										</strong>
+										<span className="header-main__ico" onClick={handleLogout}>
+											<svg className="ico-svg" viewBox="0 0 20 20" width="20">
+												<use xlinkHref="/"></use>
+											</svg>
+										</span>
+									</>
+								) : (
+									<>
+										<strong className="header-main__link hidden-sm" onClick={() => setShowLogin(true)}>Log in</strong>
+										<span className="header-main__ico" onClick={() => setShowLogin(true)}>
+											<svg className="ico-svg" viewBox="0 0 20 20" width="20">
+												<use xlinkHref="/"></use>
+											</svg>
+										</span>
+									</>
+								)}
+								<div id="g_id_onload" data-client_id="67367874134-drekvs51ripc1p92r1hpcntjk1jfmqka.apps.googleusercontent.com" data-login_uri="https://www.awwwards.com/login-google-one-tap" data-_destination="/pro">
+								</div>
 							</div>
-
-						</div>
 
 							<div className="header-main__bts">
 								<a href="#" className="button button--small--rounded" onClick={() => setShowNewsletter(true)}>뉴스레터 신청</a>
@@ -640,6 +639,7 @@ export default function Header() {
 									<a href="#" className="button button--small--rounded" onClick={() => handleRssClick()}>RSS 수집</a>
 								)}
 							</div>
+							
 						</div>
 					</div>
 				</div>
