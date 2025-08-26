@@ -14,7 +14,7 @@ export default function RSSFeedPage() {
   const [selectedBlog, setSelectedBlog] = useState<string>('all');
   const [migrating, setMigrating] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(12);
   const [totalCount, setTotalCount] = useState(0);
   // 키워드 입력 상태 관리
   const [keywordInputs, setKeywordInputs] = useState<{ [key: string]: string }>({});
@@ -28,6 +28,9 @@ export default function RSSFeedPage() {
   const [newsletterDates, setNewsletterDates] = useState<{ [key: string]: string }>({});
   const [savingNewsletterDate, setSavingNewsletterDate] = useState<{ [key: string]: boolean }>({});
   const [showKeywordManager, setShowKeywordManager] = useState(false);
+  
+  // 뷰 모드 상태 (목록/카드)
+  const [viewMode, setViewMode] = useState<'list' | 'card'>('card');
   
   // RSS 수집용 키워드 관리 상태
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -56,7 +59,7 @@ export default function RSSFeedPage() {
   const [totalPages, setTotalPages] = useState(0);
 
   // RSS 데이터 로드 - 간단한 페이지네이션
-  const loadRSSData = async (blogName?: string, page = 1, pageSize = 10, feedTypeParam?: string, searchTextParam?: string) => {
+  const loadRSSData = async (blogName?: string, page = 1, pageSize = 12, feedTypeParam?: string, searchTextParam?: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -180,24 +183,57 @@ export default function RSSFeedPage() {
     // 기존 키워드와 합치고 중복 제거
     const item = rssItems.find(item => item.guid === guid);
     const existing = localKeywords[guid] || item?.matchedKeywords || [];
-    const merged = Array.from(new Set([...existing, ...newKeywords]));
+    
+    // existing이 배열인지 확인하고 강제로 배열로 변환
+    const existingArray = Array.isArray(existing) ? existing : [];
+    console.log('🔍 기존 키워드 확인:', { guid, existing, existingArray, newKeywords });
+    
+    const merged = Array.from(new Set([...existingArray, ...newKeywords]));
 
     // Firestore에 업데이트
     try {
+      console.log('🔧 키워드 저장 시작:', { guid, matchedKeywords: merged });
+      
+      // 타임아웃 설정 (30초)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const res = await fetch(`/api/rss-migrate/keywords`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guid, matchedKeywords: merged })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ guid, matchedKeywords: merged }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
+      
+      console.log('📡 키워드 저장 응답 상태:', res.status, res.statusText);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const result = await res.json();
+      console.log('📡 키워드 저장 응답:', result);
+      
       if (result.success) {
         setLocalKeywords(prev => ({ ...prev, [guid]: merged }));
         setKeywordInputs(prev => ({ ...prev, [guid]: '' }));
+        console.log('✅ 키워드 저장 성공:', guid);
       } else {
+        console.error('❌ 키워드 저장 실패:', result.error);
         alert('키워드 저장 실패: ' + result.error);
       }
-    } catch (err) {
-      alert('키워드 저장 중 오류 발생');
+    } catch (err: any) {
+      console.error('❌ 키워드 저장 중 오류:', err);
+      if (err.name === 'AbortError') {
+        alert('키워드 저장 시간 초과 (30초). 다시 시도해주세요.');
+      } else {
+        alert('키워드 저장 중 오류 발생: ' + (err.message || '알 수 없는 오류'));
+      }
     } finally {
       setUpdatingKeyword(prev => ({ ...prev, [guid]: false }));
     }
@@ -208,22 +244,55 @@ export default function RSSFeedPage() {
     if (!window.confirm(`키워드 "${keyword}"을(를) 삭제하시겠습니까?`)) return;
     const item = rssItems.find(item => item.guid === guid);
     const existing = localKeywords[guid] || item?.matchedKeywords || [];
-    const updated = existing.filter(k => k !== keyword);
+    
+    // existing이 배열인지 확인하고 강제로 배열로 변환
+    const existingArray = Array.isArray(existing) ? existing : [];
+    console.log('🔍 키워드 삭제 - 기존 키워드 확인:', { guid, existing, existingArray, keyword });
+    
+    const updated = existingArray.filter(k => k !== keyword);
     setUpdatingKeyword(prev => ({ ...prev, [guid]: true }));
     try {
+      console.log('🔧 키워드 삭제 시작:', { guid, keyword, matchedKeywords: updated });
+      
+      // 타임아웃 설정 (30초)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const res = await fetch(`/api/rss-migrate/keywords`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guid, matchedKeywords: updated })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ guid, matchedKeywords: updated }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
+      
+      console.log('📡 키워드 삭제 응답 상태:', res.status, res.statusText);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const result = await res.json();
+      console.log('📡 키워드 삭제 응답:', result);
+      
       if (result.success) {
         setLocalKeywords(prev => ({ ...prev, [guid]: updated }));
+        console.log('✅ 키워드 삭제 성공:', guid, keyword);
       } else {
+        console.error('❌ 키워드 삭제 실패:', result.error);
         alert('키워드 삭제 실패: ' + result.error);
       }
-    } catch (err) {
-      alert('키워드 삭제 중 오류 발생');
+    } catch (err: any) {
+      console.error('❌ 키워드 삭제 중 오류:', err);
+      if (err.name === 'AbortError') {
+        alert('키워드 삭제 시간 초과 (30초). 다시 시도해주세요.');
+      } else {
+        alert('키워드 삭제 중 오류 발생: ' + (err.message || '알 수 없는 오류'));
+      }
     } finally {
       setUpdatingKeyword(prev => ({ ...prev, [guid]: false }));
     }
@@ -598,6 +667,11 @@ export default function RSSFeedPage() {
       loadFeeds();
     }
   }, [showFeedManager]);
+
+  // 뷰 모드 토글 함수
+  const toggleViewMode = () => {
+    setViewMode(prev => prev === 'list' ? 'card' : 'list');
+  };
 
   return (
     <>
@@ -1000,21 +1074,7 @@ export default function RSSFeedPage() {
 
         {!loading && !error && (
           <div className="rss-content">
-            
-            {user && (
-              <div className="info-banner" style={{
-                background: '#f0f9ff',
-                border: '1px solid #0ea5e9',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                margin: '16px 0',
-                fontSize: '14px'
-              }}>
-                <strong>📅 RSS 수집 정보:</strong> 매일 오전 6시(한국시간)에 <strong>전일 작성된 글</strong>을 자동 수집합니다. 
-                작성일은 <strong>GMT(원본 시간) / KST(한국시간)</strong> 순으로 표시됩니다.
-              </div>
-            )}
-            
+                      
             <div className="stats">
               <p>
                 {feedType !== 'all' && (
@@ -1064,19 +1124,55 @@ export default function RSSFeedPage() {
                 onChange={e => handlePageSizeChange(Number(e.target.value))}
                 className="page-size-select"
               >
-                <option value={10}>10개씩 보기</option>
-                <option value={20}>20개씩 보기</option>
-                <option value={30}>30개씩 보기</option>
+                <option value={12}>12개씩 보기</option>
+                <option value={24}>24개씩 보기</option>
+                <option value={36}>36개씩 보기</option>
               </select>
+
+              {/* 뷰 모드 토글 버튼 */}
+              <button
+                type="button"
+                onClick={toggleViewMode}
+                className="view-mode-toggle"
+                style={{
+                  background: viewMode === 'card' ? '#3b82f6' : '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  marginLeft: '12px',
+                  fontWeight: '500'
+                }}
+              >
+                {viewMode === 'card' ? '📋 목록으로 보기' : '🃏 카드로 보기'}
+              </button>
             </div>
+
+            {user && (
+              <div className="info-banner" style={{
+                background: '#f0f9ff',
+                border: '1px solid #0ea5e9',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                margin: '16px 0',
+                fontSize: '14px'
+              }}>
+                <strong>📅 RSS 수집 정보:</strong> 매일 오전 6시(한국시간)에 <strong>전일 작성된 글</strong>을 자동 수집합니다. 
+                작성일은 <strong>GMT(원본 시간) / KST(한국시간)</strong> 순으로 표시됩니다.
+              </div>
+            )}            
             
-            <div className="rss-grid">
+            <div className={`rss-grid ${viewMode === 'card' ? 'rss-grid-card' : 'rss-grid-list'}`}>
               {itemsToShow.map((item, index) => {
-                const keywords = localKeywords[item.guid] || item.matchedKeywords;
+                const keywords = localKeywords[item.guid] || item.matchedKeywords || [];
+                // keywords가 배열인지 확인하고 안전하게 처리
+                const safeKeywords = Array.isArray(keywords) ? keywords : [];
                 // 순번 계산: 전체 개수 - (현재 페이지-1) * 페이지 크기 - 현재 인덱스
                 const itemNumber = (filteredCount || totalCount) - ((currentPage - 1) * pageSize) - index;
                 return (
-                  <article key={`${item.guid}-${index}`} className="rss-item">
+                  <article key={`${item.guid}-${index}`} className={`rss-item ${viewMode === 'card' ? 'rss-item-card' : 'rss-item-list'}`}>
                     <div className="rss-meta">
                       <span className="item-number">#{itemNumber}</span>
                       <span className="blog-name">{item.blogName}</span>
@@ -1103,10 +1199,10 @@ export default function RSSFeedPage() {
                       )}
                     </p>
                     
-                    {user && keywords.length > 0 && (
+                    {user && safeKeywords.length > 0 && (
                       <div className="keywords">
                         <strong>키워드:</strong>{' '}
-                        {keywords.map((k, i) => (
+                        {safeKeywords.map((k, i) => (
                           <span key={k} className="keyword-tag">
                             {k}
                             <button
@@ -1124,7 +1220,7 @@ export default function RSSFeedPage() {
                     )}
                     {/* 키워드 입력 및 추가 버튼 */}
                     {user && (
-                      <div className="keyword-input-row">
+                      <div className={`keyword-input-row ${viewMode === 'card' ? 'keyword-input-card' : ''}`}>
                         <input
                           type="text"
                           value={keywordInputs[item.guid] || ''}
@@ -1158,7 +1254,7 @@ export default function RSSFeedPage() {
                     )} */}
                     {/* 뉴스레터 발송일 입력 */}
                     {user && (
-                      <div className="newsletter-date-row">
+                      <div className={`newsletter-date-row ${viewMode === 'card' ? 'newsletter-date-card' : ''}`}>
                         <label htmlFor={`newsletter-date-${item.guid}`}>뉴스레터 발송일:</label>
                         <input
                           type="date"

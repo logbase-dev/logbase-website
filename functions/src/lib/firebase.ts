@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyA6kCmSqaBH5SUPb4PkHU1hwe0l5Ppqw2w",
@@ -15,5 +15,12 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 const auth = getAuth(app);
+
+// 개발 환경에서 에뮬레이터 연결 (선택사항)
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+  // 브라우저 환경에서만 에뮬레이터 연결
+  // connectFirestoreEmulator(db, 'localhost', 8080);
+  // connectAuthEmulator(auth, 'http://localhost:9099');
+}
 
 export { app, db, auth }; 

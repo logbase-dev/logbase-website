@@ -85,6 +85,26 @@ export default function NewsletterModal({ show, onClose }: { show: boolean, onCl
                 />
               </div>
             </div>
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem'}}>
+              <input 
+                id="privacy-agreement" 
+                name="privacy-agreement" 
+                type="checkbox" 
+                required 
+                style={{width: '16px', height: '16px', cursor: 'pointer'}}
+              />
+              <label htmlFor="privacy-agreement" style={{fontSize: '1.2rem', color: '#666', cursor: 'pointer'}}>
+                <a 
+                  href="/privacy" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  style={{color: '#007bff', textDecoration: 'underline', fontWeight: 'bold'}}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  개인정보 처리방침
+                </a>에 동의합니다 <span style={{color:'red'}}>(필수)</span>
+              </label>
+            </div>
             <div style={{display: 'flex', justifyContent: 'center'}}>
               <button type="submit" className="inquiry-btn" style={{marginTop: '1rem', padding: '0.75rem 2.5rem', background: '#007bff', color: '#fff', border: 'none', borderRadius: 6, fontSize: '1.1rem', cursor: 'pointer', fontWeight: 600, letterSpacing: '0.5px'}}>신청하기</button>
             </div>

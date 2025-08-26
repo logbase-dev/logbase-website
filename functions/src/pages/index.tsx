@@ -1,1637 +1,593 @@
 import Link from 'next/link';
 import Head from 'next/head';
 import { SITE_TITLE } from '@/consts';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import InquiryForm from '@/components/InquiryForm';
+import NewsletterModal from '@/components/NewsletterModal';
 
 export default function HomePage() {
   const [billingType, setBillingType] = useState<'monthly' | 'yearly'>('yearly');
+  const [showInquiry, setShowInquiry] = useState(false);
+  const [showNewsletter, setShowNewsletter] = useState(false);
+  const [activeAccordion, setActiveAccordion] = useState<number | null>(null);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  
+  const videos = [
+    '/images/Logbase_main_mov_01.mp4',
+    '/images/Logbase_main_mov_02.mp4'
+  ];
 
-  return (
-    <>
-      <Head>
-        <title>{SITE_TITLE}</title>
-        <meta name="description" content="The ultimate platform for RSS feed collection and newsletter management" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/images/favicon.svg" />
-      </Head>
-      
-      <section id="content">
+    const handleAccordionHover = (index: number) => {
+        setActiveAccordion(index);
+    };
 
-        {/* 메인 블럭 start */}
-        <div className="anchor-section" id="intro">
+      const handleAccordionLeave = () => {
+    setActiveAccordion(null);
+  };
 
-            {/* main 문구, 이미지, Professional Plans 텍스트 블럭 start */}
-            <div className="block">
-                <div className="inner">
+  const handleVideoEnded = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+  };
 
-                    {/* main 문구 */}
-                    <div className="c-heading text-center">
-                        <div className="c-heading__top">
-                            {/* <h2 className="text-default">Business</h2> */}
-                        </div>
-                        <div className="c-heading__middle">
-                            <h3 className="heading-3">
-                            Become a Logbase Partner & Join the Community
-                            </h3>
-                        </div>
-                    </div>
+    // URL 파라미터 감지하여 문의하기 모달 자동 열기
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const modal = urlParams.get('modal');
+        const hash = window.location.hash;
 
-                    {/* main 이미지
-                    <div className="text-center">
-                        <img src="/images/main-bg-1.png" alt="" />
-                    </div>
-                     */}
+        if (modal === 'inquiry' || hash === '#inquiry') {
+            // 페이지 로딩 후 약간의 지연을 두고 모달 열기
+            setTimeout(() => {
+                setShowInquiry(true);
+                // URL에서 파라미터 제거 (선택사항)
+                if (modal === 'inquiry') {
+                    const newUrl = window.location.pathname + window.location.hash;
+                    window.history.replaceState({}, document.title, newUrl);
+                }
+            }, 1000);
+        }
+    }, []);
 
-                    {/* <div className="box-feature box-feature--s2--right--dark is-double"> */}
-                    <div className="box-feature box-feature--s2--dark is-double">
-                        <div className="box-feature__info">
-                            <h3 className="heading-5 box-feature__title" style={{ color: 'white' }}>행동과 데이터, 그리고 성장을 한 곳에 - Logbase와 나만의 가치를 드러내고 새로운 협업을 경험하세요.</h3>
-                            <p>
-                                나의 기록은 곧 나의 성장, Logbase와 시작하세요.<br /><br />
-                                행동데이터로 나의 고객을 이해하고 증명하며, Logbase와 함께 성장하세요.<br /><br />
-                                ILOG로 시작하는 데이터 여정, 성과와 가치를 모두 연결합니다.<br /><br />
-                            </p>
-                        </div>
-                        <div className="box-feature__photo">
-                            {/* 메인 비디오 */}
-                            <video
-                            src="/images/background.mp4"
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="rounded-xl shadow-lg object-cover object-top"
-                            />
-                        </div>
-                    </div>
+            return (
+            <>
+                <Head>
+                    <title>{SITE_TITLE}</title>
+                    <meta name="description" content="The ultimate platform for RSS feed collection and newsletter management" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <link rel="icon" href="/images/favicon.svg" />
+                </Head>
 
-                    {/* ILOG for Professional 텍스트 
-                    <div className="l-2cols">
-                        <div className="l-2cols__col l-2cols__col--large">
-                            <div className="c-heading c-heading--small">
+                <section id="content">
+
+                {/* 메인 블럭 start */}
+                <div className="anchor-section" id="intro">
+
+                    {/* main 문구, 이미지, Professional Plans 텍스트 블럭 start */}
+                    <div className="block">
+                        <div className="inner">
+
+                            {/* main 문구 */}
+                            <div className="c-heading text-center">
                                 <div className="c-heading__top">
-                                    <h2 className="text-default">ILOG for Professional</h2>
+                                    {/* <h2 className="text-default">Business</h2> */}
                                 </div>
                                 <div className="c-heading__middle">
-                                    <h3 className="heading-5 l-2cols__title">데이터에 강한 조직을 만드는 가장 빠른 투자, 측정할 수 있어야 성장합니다.</h3>
+                                    <h3 className="heading-5">
+                                        <br />
+                                        데이터로 세상을 이해하는 사람들, <br />행동데이터의 미래를 여는 Logbase와 왜 함께해야 하는지 지금 확인해보세요.
+                                    </h3>
+                                </div>
+                            </div>
+                            <br /> <br /> <br /> <br />
+                            {/* main 이미지
+                            <div className="text-center">
+                                <img src="/images/main-bg-1.png" alt="" />
+                            </div>
+                            */}
+                            <div className="box-feature box-feature--s2--dark is-double">
+                                <div className="box-feature__info">
+                                    <h3 className="heading-5 box-feature__title" style={{ color: 'white' }}>행동과 데이터, 그리고 성장을 한 곳에 - Logbase와 나만의 가치를 드러내고 새로운 협업을 경험하세요.</h3>
+                                    <p>
+                                        기록은 곧 성장, 무엇부터 해야 할지 모르겠다면 짧은 소통만으로 방향을 잡을 수 있습니다.<br /><br />
+                                        행동데이터로 고객을 더 깊이 이해하고, 성과로 증명하며 성장의 방향을 설정할 수 있습니다.<br /><br />
+                                        ILOG로 시작하는 데이터 여정, 고객의 성과와 가치를 모두를 연결합니다.<br /><br />
+                                    </p>
+                                    <p><a onClick={() => setShowNewsletter(true)} className="button button--large--outline--white--rounded">뉴스레터 신청</a> 
+                                    &nbsp;&nbsp;&nbsp;<a onClick={() => setShowInquiry(true)} className="button button--large--outline--white--rounded">문의하기</a></p>
+                                </div>
+                                <div className="box-feature__photo">
+                                    {/* 메인 비디오 */}
+                                    <video
+                                        src={videos[currentVideoIndex]}
+                                        autoPlay
+                                        muted
+                                        playsInline
+                                        onEnded={handleVideoEnded}
+                                        className="rounded-xl shadow-lg object-cover object-top"
+                                    />
                                 </div>
                             </div>
                         </div>
-
-                        <div className="l-2cols__col">
-                            <p className="hidden-lg">&nbsp;</p>
-                            <p><strong>표준 스키마, 자동 로그 QA, 재현 가능한 분석—ILOG 커뮤니티와 함께 데이터를 축적하고 측정하세요.
-                            당신의 제품 여정이 보이는 로그로 연결되고, 구독자→팬→고객으로 확장됩니다.</strong></p>
-                            <p>ILOG는 제품·마케팅 전반의 행동데이터를 일관되게 정의하고, 깨끗하게 수집하며, 즉시 활용 가능하게 만듭니다.
-                            지금 시작하면 속도, 신뢰, 리드(전환) 가 따라옵니다.<br /></p>
-                        </div>
                     </div>
-                     ILOG for Professional 텍스트 */}
-                    
+                    {/* main 문구, 이미지, Professional Plans 텍스트 블럭 end */}
                 </div>
-            </div>
-            {/* main 문구, 이미지, Professional Plans 텍스트 블럭 end */}
+                {/* 메인 블럭 end */}
 
+                {/* Feature start */}
+                <div className="anchor-section" id="features">
+                    <div className="block">
+                        <div className="inner">
 
-            {/* 플랜 테이블 블럭 start
-            <div className="block" id="plans-tables">
-                <div className="inner">
-
-                    {/* 플랜 테이블 헤더
-                    <div className="p-heading">
-                        <div className="p-heading__col">
-                            <span className="text-medium">Find the best plan for you or your agency</span>
-                        </div>
-                        <div className="p-heading__col p-heading__col--bottom">
-                            <div className="c-toggle">
-                                <div className="c-toggle__col">
-                                    <strong>Billed monthly</strong>
+                            <div className="c-heading text-center">
+                                <div className="c-heading__top">
+                                    <h2 className="text-default">Feature</h2>
                                 </div>
-                                <div className="c-toggle__col">
-                                    <div className="check-toggle" data-controller="change-plan">
-                                        <input id="be_pro_plan" className="" type="checkbox" defaultChecked={true} data-action="change-&gt;change-plan#change" />
-                                        <label className="check-toggle__label" htmlFor="be_pro_plan">
-                                            <span className="check-toggle__ball"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div className="c-toggle__col">
-                                    <strong>Billed annually</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    {/* 플랜 테이블 내용  
-                    <div className="plans plans--small">
-
-                        {/* 플랜 테이블 내용 1 BASIC Plan
-                        <div className="plan__col">
-                            <div className="plan plan--small is-dark">
-                                <div className="plan__inner">
-                                    <div className="plan__header">
-                                        <div className="plan__title">
-                                        BASIC Plan
-                                        </div>
-                                        <div className="plan__amount js-price-plan" data-controller="show-plan" data-show-plan-annually-value="$6.7" data-show-plan-monthly-value="$15" data-show-plan-annually-without-discount-value="$6.7" data-show-plan-monthly-without-discount-value="$15">
-                                            <span className="plan__price">
-                                                <strong data-show-plan-target="price">6.7</strong>
-                                                <sup>
-                                                $
-                                                <span className="text-red text-strikethrough is-hidden" data-show-plan-target="priceWithoutDiscount"></span>
-                                                </sup>
-                                            </span>
-                                            /
-                                            <span data-show-plan-target="period">month</span>
-                                            <div className="plan__discounts" data-show-plan-target="discount">
-                                                <span>Billed annually you</span>
-                                                <div className="plan__budgets">
-                                                    <span className="budget-tag budget-tag--solid--red">save $96</span> <span className="budget-tag budget-tag--solid--yellow">-58%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="plan__desc">
-                                        Ideal for freelancers, independent professionals and entrepreneurs.
-                                    </div>
-                                    <div className="plan__footer">
-                                        <a href="https://www.awwwards.com/plans/basic-plan" className="button button--medium--outline--white--rounded">Select Basic</a>
+ 
+                                <div className="c-heading__bottom">
+                                    <div className="c-heading__long-desc">
+                                        <h3 className="heading-7">데이터에 강한 조직을 만드는 가장 빠른 투자, 측정할 수 있어야 성장합니다.</h3>
+                                        <p className="feature-description-text">- 정확한 측정을 위해서는 시스템 기반의 로그 프로세스가 필수입니다.</p>
+                                        <p className="feature-description-text">- 로그는 정확도, 개발 효율, 운영 편의성 없이는 지속적으로 유지하기 어렵습니다.</p>
+                                        <p className="feature-description-text">- ILOG는 고객 이해와 인사이트 발굴, 실험이 반복되는 로그의 여정 속에서, 짧은 시간과 노력만으로 고품질 로그를 확보합니다.</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* 플랜 테이블 내용 2 PROFESSIONAL Plan
-                        <div className="plan__col">
-                            <div className="plan plan--small is-dark is-main">
-                                <div className="plan__inner">
-                                    <div className="plan__budget">
-                                        <span className="plan__tag budget-tag uppercase text-uppercase">Recommended</span>
-                                    </div>
-                                    <div className="plan__header">
-                                        <div className="plan__title">
-                                            PROFESSIONAL Plan
-                                        </div>
-                                        <div className="plan__amount js-price-plan" data-controller="show-plan" data-show-plan-annually-value="$13.8" data-show-plan-monthly-value="$26" data-show-plan-annually-without-discount-value="$13.8" data-show-plan-monthly-without-discount-value="$26">
-                                            <span className="plan__price">
-                                                <strong data-show-plan-target="price">13.8</strong>
-                                                <sup>
-                                                    $
-                                                    <span className="text-red text-strikethrough is-hidden" data-show-plan-target="priceWithoutDiscount">
-                                                    </span>
-                                                </sup>
-                                            </span>
-                                            /
-                                            <span data-show-plan-target="period">month</span>
-                                            <div className="plan__discounts" data-show-plan-target="discount">
-                                                <span>Billed annually you</span>
-                                                    <div className="plan__budgets">
-                                                        <span className="budget-tag budget-tag--solid--red">save $144</span> <span className="budget-tag budget-tag--solid--yellow">-58%</span>
+                            {/* 피처 내용 */}
+                            <div className="grid-features" id="member-features">
+
+                                <div className="box-feature box-feature--s1--right">
+                                    <video
+                                        src="/images/ILOG_DEMO_DEFINITION_CROPED.mp4"
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        className="rounded-xl shadow-lg object-cover object-top"
+                                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                    />
+                                </div>
+
+                                <div className="box-feature box-feature--s1--right">
+                                    <div className="l-1cols">
+                                        <div className="l-1cols__col">
+
+                                            <div className="accordion-features">
+                                                <div className={`accordion-item ${activeAccordion === 0 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(0)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">모든 플랫폼 로그를 한눈에, 실시간 Web UI</span>
+                                                        <span className="accordion-icon">+</span>
                                                     </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="plan__desc">
-                                        The gold standard investment for all agencies and studios.
-                                    </div>
-                                    <div className="plan__footer">
-                                        <a href="https://www.awwwards.com/plans/professional-plan" className="button button--medium--outline--white--rounded">Select Professional</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                                    <div className="accordion-content">
+                                                        <p>Android, iOS, Web 모든 화면과 기능을 <strong>웹 브라우저에서 동일한 UI로 확인 및 테스트</strong></p>
+                                                        <p><strong>단말 없이도 로그 확인과 검증 가능</strong> — 모바일 기기 없이도 실시간 로그 확인</p>
+                                                    </div>
+                                                </div>
 
-                        {/* 플랜 테이블 내용 3 INTERNATIONAL Plan
-                        <div className="plan__col">
-                            <div className="plan plan--small">
-                                <div className="plan__inner">
-                                    <div className="plan__header">
-                                        <div className="plan__title">
-                                            INTERNATIONAL Plan
-                                        </div>
-                                        <div className="plan__amount js-price-plan" data-controller="show-plan" data-show-plan-annually-value="$324" data-show-plan-monthly-value="$555" data-show-plan-annually-without-discount-value="$324" data-show-plan-monthly-without-discount-value="$555">
-                                            <span className="plan__price">
-                                                <strong data-show-plan-target="price">324</strong>
-                                                <sup>
-                                                    $
-                                                    <span className="text-red text-strikethrough is-hidden" data-show-plan-target="priceWithoutDiscount">
-                                                        
-                                                    </span>
-                                                </sup>
-                                            </span>
-                                            /
-                                            <span data-show-plan-target="period">month</span>
-                                            <div className="plan__discounts" data-show-plan-target="discount">
-                                                <span>Billed annually you</span>
-                                                <div className="plan__budgets">
-                                                    <span className="budget-tag budget-tag--solid--red">save $2772</span> <span className="budget-tag budget-tag--solid--yellow">-58%</span>
+                                                <div className={`accordion-item ${activeAccordion === 1 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(1)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">실시간 로그 수집 & 자동 검증</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                            <p>사용자 행동 로그를 <strong>실시간 수집하고 자동으로 검증 결과까지 제공</strong></p>
+                                                            <p><strong>로그 확인만으로 QA 작업까지 한 번에</strong> — 로그 품질 검토를 위한 별도 작업 불필요</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className={`accordion-item ${activeAccordion === 2 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(2)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">LLM 기반 이벤트 구조 자동 정의</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                        <p>AI가 <strong>page_id, action_id, 속성 구조를 자동 분석하고 최적 taxonomy를 제안</strong></p>
+                                                        <p>사용자는 제안을 <strong>선택 또는 수정</strong>만 하면 되고, LLM은 계속해서 학습하며 개선한 결과를 제공</p>
+                                                        <p>속성 정보는 <strong>선택형 리스트</strong>로 제공되어 클릭만으로 정의 가능 (신규 속성은 별도 개발)</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className={`accordion-item ${activeAccordion === 3 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(3)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">배포 전 AutoBot으로 서비스 전체 자동 검사</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                        <p><strong>가상의 Bot이 실제 사용자 환경을 시뮬레이션하며 전 영역을 검사</strong></p>
+                                                        <p><strong>배포 전 에러·누락된 로그를 자동 탐지</strong>하고, 상세 리포트 제공</p>
+                                                        <p>QA 리소스를 최소화하고 <strong>출시 전 품질 문제를 선제적으로 해결</strong></p>
+                                                    </div>
+                                                </div>
+
+                                                <div className={`accordion-item ${activeAccordion === 4 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(4)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">로그 개발, 단 한 줄로 끝</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                        <p><strong>페이지 진입/클릭마다 API 하나 추가</strong>면 로그 개발 완료</p>
+                                                        <p>API에는 <strong>Log ID 하나만 추가</strong>하면 끝 — 복잡한 로그 개발 과정을 제거하여 최대한 간소화</p>
+                                                        <p><strong>개발 부담을 90% 이상 절감</strong>, 초기 세팅만으로 유지보수 필요 없음</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="plan__desc">
-                                        The crème de la crème - high impact visibility for bold industry leaders.
-                                    </div>
-                                    <div className="plan__footer">
-                                        <a href="https://www.awwwards.com/plans/international-plan" className="button button--medium--outline--rounded">Select International</a>
-                                    </div>
                                 </div>
+
                             </div>
-                        </div>
 
-                    </div>
-
-
-                    {/* 플랜 테이블 하단 버튼
-                    <div className="c-view-all">
-                        <div className="c-view-all__row text-medium">
-                            <span>Want more info about our plans?</span>
-                            <a href="https://www.awwwards.com/pro#price-table" className="bt-ico-left">
-                                <svg className="ico-svg" viewBox="0 0 20 20" width="16">
-                                <path d="M10 3L17 10L10 17" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                                <strong className="link-underlined">Compare Plans</strong>
-                            </a>
                         </div>
                     </div>
-
                 </div>
-            </div>
-            플랜 테이블 블럭 end */}
+                {/* Feature end */}
 
-        </div>
-        {/* 메인 블럭 end */}
-
-
-
-        {/* 피처 블럭 start */}
-        <div className="anchor-section" id="features">
-            <div className="block">
-                <div className="inner">
-
-                    {/* 피처 헤더 
-                    <div className="c-heading text-center">
-                        <div className="c-heading__top">
-                            <h2 className="text-default">What you'll get </h2>
-                        </div>
-                        <div className="c-heading__middle">
-                            <h3 className="heading-1">ALL<br />FEATURES</h3>
-                        </div>
-                        <div className="c-heading__bottom">
-                            <div className="c-heading__short-desc">
-                                <span>Check out some of the top features you'll enjoy as a Pro Member.</span>
-                            </div>
-                        </div>
-                    </div>
-                    피처 헤더 */}
-
-
-
-                    {/* ILOG for Professional 텍스트 */}
-                    <div className="l-2cols">
-                        <div className="l-2cols__col l-2cols__col--large">
-                            <div className="c-heading c-heading--small">
+                {/* Background start */}
+                <div className="anchor-section" id="background">
+                    <div className="block">
+                        <div className="inner">
+                            <div className="c-heading text-center">
                                 <div className="c-heading__top">
-                                    <h2 className="text-default">ILOG for Professional</h2>
+                                    <h2 className="text-default">Background</h2>
                                 </div>
-                                <div className="c-heading__middle">
-                                    <h3 className="heading-5 l-2cols__title">데이터에 강한 조직을 만드는 가장 빠른 투자, 측정할 수 있어야 성장합니다.</h3>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div className="l-2cols__col">
-                            <p className="hidden-lg">&nbsp;</p>
-                            <p><strong>표준 스키마, 자동 로그 QA, 재현 가능한 분석—ILOG 커뮤니티와 함께 데이터를 축적하고 측정하세요.
-                            당신의 제품 여정이 보이는 로그로 연결되고, 구독자→팬→고객으로 확장됩니다.</strong></p>
-                            <p>ILOG는 제품·마케팅 전반의 행동데이터를 일관되게 정의하고, 깨끗하게 수집하며, 즉시 활용 가능하게 만듭니다.
-                            지금 시작하면 속도, 신뢰, 리드(전환) 가 따라옵니다.<br /></p>
-                        </div>
-                    </div>                    
-
-                    {/* ILOG_DEMO_DEFINITION 블럭 image start */}
-                    <div className="anchor-section">
-                        <div className="block">
-                            <div className="inner">
-                                <div className="grid-features">
-                                    <div className="box-feature box-feature--s2-low is-double" style={{ width: '100%', height: '800px' }}>
-                                        <div className="box-feature__photo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                            {/* ILOG_DEMO_DEFINITION 비디오 */}
-                                                                                         <video
-                                             src="/images/ILOG_DEMO_DEFINITION.mov"
-                                             autoPlay
-                                             loop
-                                             muted
-                                             playsInline
-                                             className="rounded-xl shadow-lg object-cover object-top"
-                                             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                             />
-                                        </div>
+                                <div className="c-heading__bottom">
+                                    <div className="c-heading__long-desc">
+                                        <h3 className="heading-7">현재까지 대부분의 기업은 행동데이터 수집을 수작업이나 부분적인 자동화에 의존해왔습니다.
+                                        그렇다면 왜 이러한 비효율이 여전히 반복되고 있을까요?</h3>
+                                        <p className="feature-description-text">- 개발 요구는 끊임없이 증가하지만, 로그 개발은 반복적이고 까다로운 작업으로 여겨져 개발자들이 기피하는 영역이 되었습니다.</p>
+                                        <p className="feature-description-text">- 특히 여러 개발자가 함께 작업할 경우, 로그 누락·오류·불일치 문제가 빈번하게 발생하며, 서비스 개선 시마다 데이터 품질에까지 영향을 미치는 악순환이 반복됩니다.</p>
+                                        <p className="feature-description-text">- 결국 문제 해결에는 더 많은 시간과 리소스가 들게 되고, 기업은 다음 배포 일정에 쫓겨 또다시 같은 실수를 반복하는 데이터 운영의 챗바퀴로부터 벗어나지 못하고 있습니다.</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    {/* ILOG_DEMO_DEFINITION 블럭 image end */}
+                            <div className="grid-features" id="member-features">
 
-                    {/* 피처 내용 */}
-                    <div className="grid-features">
-                        {/* 피처 내용 1
-                        <div className="box-feature">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Company Showcase</h3>
-                                <p>Add a comprehensive showcase of your work, including projects not submitted, through galleries, videos and photos.</p>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/img-2.png" alt="" />
-                            </div>
-                        </div>
-                        */}
-                        {/* 피처 내용 2
-                        <div className="box-feature">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Professional Mood boards </h3>
-                                <p>A handy tool to curate mood boards of the elements that inspire you and share them with your team and clients.</p>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/img-3.png" alt="" />
-                            </div>
-                        </div>
-                        */}
-                        {/* 피처 내용 3 */}
-                        <div className="box-feature box-feature--s2--right--dark is-double">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">New Improved w. Profile Page.</h3>
-                                <p>Make your profile page stand out from the crowd, highlight your submissions and other projects, and encourage even more interactions with your brand.</p>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/main-bg-2.png" alt="" />
-                            </div>
-                        </div>
+                                <div className="box-feature box-feature--s1--right">
+                                    <div className="l-1cols">
+                                        <div className="l-1cols__col">               
+                                            <div className="accordion-features">
+                                                <div className={`accordion-item ${activeAccordion === 5 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(5)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">로그 개발은 피할 수 없는 현실</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                        <p>로그없이는 고객의 선호도와 행동을 <strong>맥락과 함게 이해</strong>할 수 없습니다.</p>
+                                                        <p>기능 구현 후 반드시 로그 개발과 검증이 따라오기 때문에, 이제는 <strong>기능과 로그 둘 다 필수</strong>입니다.</p>
+                                                        <p>데이터 개발은 더 이상 미룰 수 없는 <strong>기업 운영의 핵심 과제</strong>가 되었습니다.</p>
+                                                    </div>
+                                                </div>
 
+                                                <div className={`accordion-item ${activeAccordion === 6 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(6)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">단순 솔루션으로 해결되지 않는 문제</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                            <p>로그 수집을 효율적이고 정확하게 하려면 <strong>프로세스, 시스템, 검증 체계</strong>가 함께 필요합니다.</p>
+                                                            <p>외부 솔루션 하나만으로는 기업의 로그 문제를 근본적으로 해결할 수 없습니다.</p>
+                                                            <p>업무 프로세스와 조직문화에 로그운영이 녹아들어야 진정한 변화가 가능합니다.</p>
+                                                    </div>
+                                                </div>
 
-                        {/* 피처 내용 4
-                        <div className="box-feature">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Reviews of your company (coming soon)</h3>
-                                <p>Show off great feedback from your clients or users for your business or profile, by activating the reviews option.</p>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/img-4.png" alt="" />
-                            </div>
-                        </div>
-                        */}
-                        {/* 피처 내용 5
-                        <div className="box-feature">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Hire Me Button</h3>
-                                <p>Available for work? Activate the "Hire Me" button for instant job offers. </p>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/img-5.png" alt="" />
-                            </div>
-                        </div>
-                        */}
-                        {/* 피처 내용 6
-                        <div className="box-feature box-feature--s2--dark--left is-double">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Access to exclusive content.</h3>
-                                <p>Enjoy promotions, exclusive content such as digital books, articles and discounts on conferences and products.</p>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/bg-2.png" alt="" />
-                            </div>
-                        </div>
-                        */}
-                        {/* 피처 내용 7
-                        <div className="box-feature">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Add Collaborators</h3>
-                                <p>Add your team to your submissions, and share recognition for the hard work with all the collaborators.</p>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/img-7.png" alt="" />
-                            </div>
-                        </div>
-                        */}
-                    </div>
+                                                <div className={`accordion-item ${activeAccordion === 7 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(7)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">조직의 데이터 관점부터 점검하기 </span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                        <p>첫 번째 과제는 우리 조직이 데이터를 어떻게 바라보는지를 알아야 합니다.</p>
+                                                        <p>데이터를 자산으로 바라본다면, 다음은 <strong>생성–검증–모니터링의 효율성</strong>을 확보하는 일입니다.</p>
+                                                        <p>수작업 방식으로는 Agile 환경을 따라갈 수 없으므로, 결국에는 시스템 기반 접근으로 전환합니다.</p>
+                                                    </div>
+                                                </div>
 
-                    {/* 피처 하단 버튼
-                    <div className="c-view-all">
-                      <div className="c-view-all__row text-medium">
-                        <span>Many more improved features are coming soon.</span>
-                      </div>
-                    </div>
-                    */}
-                </div>
-            </div>
-        </div>
+                                                <div className={`accordion-item ${activeAccordion === 8 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(8)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">ILOG가 제안하는 변화</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                        <p>ILOG는 AI 기반 행동데이터 시스템을 통해 <strong>로그 프로세스 전반의 혁신</strong>을 지원합니다.</p>
+                                                        <p>단순 자동화가 아니라, 기업의 데이터 관점과 운영 문화를 바꾸는 데 집중합니다.</p>
+                                                        <p>이를 통해 로그는 비용이 아닌, <strong>성장을 견인하는 투자</strong>로 자리잡을 수 있습니다.</p>
+                                                    </div>
+                                                </div>
 
-        {/* 플랜 테이블 블럭 start
-        <div className="anchor-section" id="background">
-            <div className="block">
-                <div className="inner">
-                    <div className="c-heading text-center">
-                        <div className="c-heading__top">
-                            <h2 className="text-default">Basic Plan</h2>
-                        </div>
-                        <div className="c-heading__middle">
-                            <h3 className="heading-1">BASIC<br />MEMBER</h3>
-                        </div>
-                        <div className="c-heading__bottom">
-                            <div className="c-heading__short-desc">
-                                <span>Invest in your personal brand and grow with us and the w.community.</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="grid-features" id="member-features">
-                        <div className="box-feature box-feature--s2--right--dark is-double">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Plan for individual professionals and freelancers.</h3>
-                                <p>If you are a freelance designer, developer or entrepreneur, this is the plan for you.</p>
-                            </div>
-                            <div className="star-price star-price--large">
-                                <div className="star-price__wrap">
-                                                                    <div className="star-price__price--large">15<small>$</small></div>
-                                    <div className="star-price__label--small text-uppercase">Month</div>
-                                </div>
-                                <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0 37.4911C9.26197 35.3577 17.8554 30.8883 24.4807 24.4808C30.8882 17.8554 35.3578 9.26197 37.4911 0C45.5512 5.04038 54.7831 7.95493 64 8.11268C73.2169 7.95493 82.4488 5.04038 90.5089 0C92.6422 9.26197 97.1117 17.8554 103.519 24.4808C110.145 30.8883 118.738 35.3577 128 37.4911C122.96 45.5512 120.045 54.7831 119.887 64C120.045 73.2169 122.96 82.4488 128 90.5089C118.738 92.6423 110.145 97.1117 103.519 103.519C97.1117 110.145 92.6422 118.738 90.5089 128C82.4488 122.96 73.2169 120.045 64 119.887C54.7831 120.045 45.5512 122.96 37.4911 128C35.3578 118.738 30.8882 110.145 24.4807 103.519C17.8554 97.1117 9.26197 92.6423 0 90.5089C5.04037 82.4488 7.95497 73.2169 8.11271 64C7.95497 54.7831 5.04037 45.5512 0 37.4911Z" fill="#FFF083"></path>
-                                </svg>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/bg-3.png" alt="" />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="l-2cols">
-                        <div className="l-2cols__col">
-                            <div className="l-2cols__desc">
-                                <p><strong>YOU are your USP, so make your profile shine bright like a diamond!.</strong></p>
-                                <p>As well as an eye-catching profile which showcases your assets, your Pro Plan gives you the following features whether you are a member of a team or a freelancer.</p>
-                            </div>
-                        </div>
-                        <div className="l-2cols__col l-2cols__col--large">
-                            <ul className="list-features">
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" fill="currentColor"/>
-        </svg>
-    </p>
-                                            <p><strong>Add Collaborators</strong></p>
-                                            <p>Add your team to your submissions, and share recognition for the hard work with all the collaborators.</p>
-      </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" fill="currentColor"/>
-        </svg>
-    </p>
-                                            <p><strong>Moodboard Tool (soon)</strong></p>
-                                            <p>Access to the new tool for professionals, awwwards moodboards.</p>
+                                            </div>
                                         </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#mail"></use>
-        </svg>
-    </p>
-                                            <p><strong>Email assistant</strong></p>
-                                            <p>Direct contact with the awwwards team for all your questions.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#discount"></use>
-        </svg>
-    </p>
-                                            <p><strong>Discounts &amp; Exclusive Content</strong></p>
-                                            <p>Enjoy discounts, promotions and offers on all our products and conferences, as well as access to exclusive content.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#directory"></use>
-        </svg>
-    </p>
-                                            <p><strong>Professional Directory</strong></p>
-                                            <p>Be in our professional Directory, the first place companies come to find employees in the digital design industry.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#eye"></use>
-        </svg>
-    </p>
-                                            <p><strong>Visibility</strong></p>
-                                            <p>Be found in the Directory in the category and location of your choice. (i.e. design, development etc.) 1 Category.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            <div className="box-notice">
-                                <div className="box-notice__left">
-                                    <div className="box-notice__info">
-                                        <p><strong>Basic subscription.</strong></p>
-                                        <small>The best solution for professionals, entrepreneurs and agency members to showcase their work, get visibility and invest in their personal brands.</small>
                                     </div>
                                 </div>
-                                <div className="box-notice__right">
-                                    <p><a href="https://www.awwwards.com/plans/basic-plan" className="button button--medium--rounded--extra-pad">Buy Plan</a></p>
-                                    <small>Or compare plans <strong><a className="link-underlined" href="https://www.awwwards.com/pro#price-table">here</a></strong></small>
+
+                                <div className="box-feature box-feature--s1--right">
+                                    <img src="/images/bg-background_04.png" alt="Background" />
                                 </div>
+
                             </div>
+
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        플랜 테이블 블럭 end */}
+                {/* Background end */}
 
-
-        {/* 플랜 테이블 블럭 start
-        <div className="anchor-section" id="differentiator">
-            <div className="block">
-                <div className="inner">
-                    <div className="c-heading text-center">
-                        <div className="c-heading__top">
-                            <h2 className="text-default">Professional Plan</h2>
-                        </div>
-                        <div className="c-heading__middle">
-                            <h3 className="heading-1">PROFESSIONAL<br />MEMBER</h3>
-                        </div>
-                        <div className="c-heading__bottom">
-                            <div className="c-heading__short-desc">
-                                <span>The plan everyone needs.</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="grid-features">
-                        <div className="box-feature box-feature--s2--right--dark is-double">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Plan for agencies, studios and profesionals.</h3>
-                                <p>For all those who know about the importance of investing in brand, visibility and recognition.</p>
-                            </div>
-                            <div className="star-price star-price--large">
-                                <div className="star-price__wrap">
-                                    <div className="star-price__price">26<small>$</small></div>
-                                    <div className="star-price__label--small text-uppercase">Month</div>
-                                </div>
-                                <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0 37.4911C9.26197 35.3577 17.8554 30.8883 24.4807 24.4808C30.8882 17.8554 35.3578 9.26197 37.4911 0C45.5512 5.04038 54.7831 7.95493 64 8.11268C73.2169 7.95493 82.4488 5.04038 90.5089 0C92.6422 9.26197 97.1117 17.8554 103.519 24.4808C110.145 30.8883 118.738 35.3577 128 37.4911C122.96 45.5512 120.045 54.7831 119.887 64C120.045 73.2169 122.96 82.4488 128 90.5089C118.738 92.6423 110.145 97.1117 103.519 103.519C97.1117 110.145 92.6422 118.738 90.5089 128C82.4488 122.96 73.2169 120.045 64 119.887C54.7831 120.045 45.5512 122.96 37.4911 128C35.3578 118.738 30.8882 110.145 24.4807 103.519C17.8554 97.1117 9.26197 92.6423 0 90.5089C5.04037 82.4488 7.95497 73.2169 8.11271 64C7.95497 54.7831 5.04037 45.5512 0 37.4911Z" fill="#FFF083"></path>
-                                </svg>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/bg-3.png" alt="" />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="l-2cols">
-                        <div className="l-2cols__col">
-                            <div className="l-2cols__desc">
-                                <p><strong>If they don't see you, you don't exist!</strong></p>
-                                <p>Choose the best option for your business or brand, a complete package with well-designed features for your business.</p>
-                            </div>
-                        </div>
-                        <div className="l-2cols__col l-2cols__col--large">
-                            <ul className="list-features" id="team-features">
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#jobs"></use>
-        </svg>
-    </p>
-                                            <p><strong>BASIC Plan Features</strong></p>
-                                            <p>All features of the Basic plan are included in this plan..</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#submission"></use>
-        </svg>
-    </p>
-                                            <p><strong>Free Submission</strong></p>
-                                            <p>A MUST, take advantage and upload your project to w. (only for annual payments).</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#video"></use>
-        </svg>
-    </p>
-                                            <p><strong>Promotional video in Profile</strong></p>
-                                            <p>Promote your business, your skills and add a personal touch to your profile with the promotional video.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#discount"></use>
-        </svg>
-    </p>
-                                            <p><strong>75% discount on Jobs</strong></p>
-                                            <p>Publish new positions in your company on the most effective platform to achieve your goals.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#eye"></use>
-        </svg>
-    </p>
-                                            <p><strong>More Visibility</strong></p>
-                                            <p>Be found in the Directory in the categories and location of your choice. (i.e. design, development etc.), 3 categories max.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            <div className="box-notice">
-                                <div className="box-notice__left">
-                                    <div className="box-notice__info">
-                                        <p><strong>Professional subscription.</strong></p>
-                                        <small>A plan that gives you much more than it costs, visibility, tools, discounts, a necessary must.!.</small>
-                                    </div>
-                                </div>
-                                <div className="box-notice__right">
-                                    <p><a href="https://www.awwwards.com/plans/professional-plan" className="button button--medium--rounded--extra-pad">Buy Plan</a></p>
-                                    <small>Or compare plans <strong><a className="link-underlined" href="https://www.awwwards.com/pro#price-table">here</a></strong></small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        플랜 테이블 블럭 end */}
-
-        {/* 플랜 테이블 블럭 start
-        <div className="anchor-section" id="pro-int">
-            <div className="block">
-                <div className="inner">
-                    <div className="c-heading text-center">
-                        <div className="c-heading__top">
-                            <h2 className="text-default">International Plan</h2>
-                        </div>
-                        <div className="c-heading__middle">
-                            <h3 className="heading-1">INTERNATIONAL<br />MEMBER</h3>
-                        </div>
-                        <div className="c-heading__bottom">
-                            <div className="c-heading__short-desc">
-                                <span>The greatest plan of w.</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="grid-features">
-                        <div className="box-feature box-feature--s2--right--dark is-double">
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title">Plan for big agencies or studios.</h3>
-                                <p>Designed only for those large agencies and studios that need maximum visibility.</p>
-                            </div>
-                            <div className="star-price star-price--large">
-                                <div className="star-price__wrap">
-                                    <div className="star-price__price">555<small>$</small></div>
-                                    <div className="star-price__label--small text-uppercase">Month</div>
-                                </div>
-                                <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0 37.4911C9.26197 35.3577 17.8554 30.8883 24.4807 24.4808C30.8882 17.8554 35.3578 9.26197 37.4911 0C45.5512 5.04038 54.7831 7.95493 64 8.11268C73.2169 7.95493 82.4488 5.04038 90.5089 0C92.6422 9.26197 97.1117 17.8554 103.519 24.4808C110.145 30.8883 118.738 35.3577 128 37.4911C122.96 45.5512 120.045 54.7831 119.887 64C120.045 73.2169 122.96 82.4488 128 90.5089C118.738 92.6423 110.145 97.1117 103.519 103.519C97.1117 110.145 92.6422 118.738 90.5089 128C82.4488 122.96 73.2169 120.045 64 119.887C54.7831 120.045 45.5512 122.96 37.4911 128C35.3578 118.738 30.8882 110.145 24.4807 103.519C17.8554 97.1117 9.26197 92.6423 0 90.5089C5.04037 82.4488 7.95497 73.2169 8.11271 64C7.95497 54.7831 5.04037 45.5512 0 37.4911Z" fill="#FFF083"></path>
-                                </svg>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/bg-3.png" alt="" />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="l-2cols">
-                        <div className="l-2cols__col">
-                            <div className="l-2cols__desc">
-                                <p><strong>Make the most of w.directory</strong></p>
-                                <p>The most ambitious plan, only for a few who want to make the most of <a className="link-underlined" href="https://www.awwwards.com/directory/">w.directory</a></p>
-                            </div>
-                        </div>
-                        <div className="l-2cols__col l-2cols__col--large">
-                            <ul className="list-features">
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#collections"></use>
-        </svg>
-    </p>
-                                            <p><strong>PROFESSIONAL Plan Features</strong></p>
-                                            <p>All features of the Professional plan are included in this plan...</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#user-avatar"></use>
-        </svg>
-    </p>
-                                            <p><strong>Animated Avatar</strong></p>
-                                            <p>A very cool option, this superpower can only be had by the biggest.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#comment"></use>
-        </svg>
-    </p>
-                                            <p><strong>Personal assistance</strong></p>
-                                            <p>You have at your disposal 24/7 the awwwards team to help you achieve your goals.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#calendar-2"></use>
-        </svg>
-    </p>
-                                            <p><strong>Featured on HOME PAGE &amp; DIRECTORY</strong></p>
-                                            <p>The place with the most visits in all w., without a doubt the place where the greatest have to be. (3 slots at each time)</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#discount"></use>
-        </svg>
-    </p>
-                                            <p><strong>50% discount on Submissions</strong></p>
-                                            <p>Upload a lot more projects, increase the chances of being a winner.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list-features__content">
-                                            <p>        <svg className="ico-svg" viewBox="0 0 20 20" width="32">
-            <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#eye-2"></use>
-        </svg>
-    </p>
-                                            <p><strong>Much More Visibility</strong></p>
-                                            <p>You will be listed in our directory in 5 Categories and in all countries ( 3 slots each time ).</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            <div className="box-notice">
-                                <div className="box-notice__left">
-                                    <div className="box-notice__info">
-                                        <p><strong>International susbcription.</strong></p>
-                                        <small>Designed for those who know that spending on visibility is the most important for a business..</small>
-                                    </div>
-                                </div>
-                                <div className="box-notice__right">
-                                    <p><a href="https://www.awwwards.com/plans/international-plan" className="button button--medium--rounded--extra-pad">Buy Plan</a></p>
-                                    <small>Or compare plans <strong><a className="link-underlined" href="https://www.awwwards.com/pro#price-table">here</a></strong></small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        플랜 테이블 블럭 end */}
-
-        {/* 커뮤니티 블럭 start
-        <div className="anchor-section" id="community">
-            <div className="block">
-                <div className="inner">
-                    <div className="c-heading text-center">
-                        <div className="c-heading__top">
-                            <h2 className="text-default">Community</h2>
-                        </div>
-                        <div className="c-heading__middle">
-                            <h3 className="heading-1 text-uppercase">
-                                Reasons<br />to be part<br />of w.
-                            </h3>
-                        </div>
-                        <div className="c-heading__bottom">
-                            <div className="c-heading__short-desc">
-                                <span>A global community of digital creatives, sharing knowledge, inspiration and innovation.</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="timeline js-timeline">
-                        <div className="timeline__step">
-                        <div className="timeline__card">
-                            <div className="timeline__info">
-                                <p><strong>Users</strong></p>
-                                <div className="heading-5"><strong>+56K</strong></div>
-                                <p>A global community of digital creatives, sharing knowledge, inspiration and innovation.</p>
-                            </div>
-                            <div className="timeline__img">
-                                <img src="/images/1.jpg" alt="" />
-                            </div>
-                        </div>
-                        </div>
-                        <div className="timeline__step">
-                            <div className="timeline__card">
-                                <div className="timeline__info">
-                                    <p><strong>Unique Visits</strong></p>
-                                    <div className="heading-5"><strong>+578M</strong></div>
-                                    <p>The main point of reference for visibility and recognition for the web design industry</p>
-                                </div>
-                                <div className="timeline__img">
-                                    <img src="/images/2.jpg" alt="" />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="timeline__step">
-                            <div className="timeline__card">
-                                <div className="timeline__info">
-                                    <p><strong>Submissions</strong></p>
-                                    <div className="heading-5"><strong>+206K</strong></div>
-                                    <p>A continually expanding source of ideas, trends and innovation at your fingertips.</p>
-                                </div>
-                                <div className="timeline__img">
-                                    <img src="/images/3.jpg" alt="" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="c-view-all">
-                        <div className="c-view-all__row">
-                            <strong className="heading-1">+3.780</strong>
-                        </div>
-                        <div className="c-view-all__row text-medium">
-                            <span>Connect with over <strong>6,800</strong> Agencies and Professionals</span>
-                            <a href="https://www.awwwards.com/directory/homepage/" className="bt-ico-left">
-                            <svg className="ico-svg" viewBox="0 0 20 20" width="16">
-                                    <path d="M10 3L17 10L10 17" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                                <strong className="link-underlined">View Directory</strong>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        커뮤니티 블럭 end */}
-
-        {/* 플랜 테이블 블럭 start 
-        <div className="block  is-show " id="price-table">
-            <div className="inner">
-                <div className="p-heading">
-                    <div className="p-heading__col">
-                        <div className="p-heading__top">
-                            <div className="c-heading c-heading--small">
+                {/* Differentiator start */}
+                <div className="anchor-section" id="differentiator">
+                    <div className="block">
+                        <div className="inner">
+                            <div className="c-heading text-center">
                                 <div className="c-heading__top">
-                                    <div>Professional Plans</div>
+                                    <h2 className="text-default">Differentiator</h2>
                                 </div>
+
+                                <div className="c-heading__bottom">
+                                    <div className="c-heading__long-desc">
+                                        <h3 className="heading-7">로그베이스의 행동데이터는 ILOG 솔루션으로 기업의 변화를 시작합니다.</h3>
+                                        <p className="feature-description-text">- 수많은 대기업 플랫폼 서비스(11번가, Btv, 요기요 등) 로그 운영과 개발의 시행착오 속에서 얻은 현장 중심의 해법을 ILOG에 녹여냈습니다.</p>
+                                        <p className="feature-description-text">- 복잡하고 반복적인 로그 작업을 자동화하고, 데이터 활용의 수준을 한 단계 끌어올립니다.</p>
+                                        <p className="feature-description-text">- 이제 로그는 더 이상 부담이 아니라, 성장을 가속화하는 차별화된 무기가 됩니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div className="grid-features" id="member-features">
+                                <div className="box-feature box-feature--s1--right">
+                                    <img src="/images/bg-differentiator.png" alt="Background" />
+                                </div>
+
+                                <div className="box-feature box-feature--s1--right">
+                                    <div className="l-1cols">
+                                        <div className="l-1cols__col">
+                                            
+                                            <div className="accordion-features">
+                                                <div className={`accordion-item ${activeAccordion === 9 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(9)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">대규모 서비스 경험에서 검증된 노하우</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                        <p>대기업 플랫폼 서비스의 복잡한 로그 운영을 직접 경험하며, <strong>실전에서 검증된 프로세스와 체계</strong>를 확보했습니다.</p>
+                                                        <p>단순 솔루션이 아닌, 실제 서비스 현장에서 바로 적용 가능한 운영 최적화 방안을 제공합니다.</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className={`accordion-item ${activeAccordion === 10 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(10)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">개발과 로그의 균형을 아는 솔루션</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                            <p>개발 조직은 항상 ‘기능 우선 vs 로그 품질’ 사이에서 갈등합니다.</p>
+                                                            <p>Logbase는 <strong>개발부서의 언어와 데이터부서의 요구를 동시에 충족시키기 위한 솔루션</strong>으로, 이 균형을 맞추는 방법을 명확하게 제공합니다.</p>
+                                                            <p>결과적으로 기능 개발과 로그 개발이 <strong>서로 발목을 잡지 않고 함께 조화롭게 최적화</strong>됩니다.</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className={`accordion-item ${activeAccordion === 11 ? 'active' : ''}`}>
+                                                    <div className="accordion-header" onMouseEnter={() => handleAccordionHover(11)} onMouseLeave={handleAccordionLeave}>
+                                                        <span className="accordion-title">단순 자동화가 아닌, 운영 문화의 변화</span>
+                                                        <span className="accordion-icon">+</span>
+                                                    </div>
+                                                    <div className="accordion-content">
+                                                        <p>ILOG는 로그 자동화를 넘어, <strong>조직의 데이터 관점과 운영 문화 자체를 변화</strong>시킵니다.</p>
+                                                        <p>시스템 기반 운영, 역할과 책임(R&R) 정립, 검증과 모니터링 체계까지 포함한 엔드투엔드 접근 방식을 제공합니다.</p>
+                                                        <p>이를 통해 로그는 더 이상 번거로운 과제가 아니라, <strong>지속 가능한 경쟁력의 기반</strong>이 됩니다.</p>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                {/* Differentiator end */}
+
+
+                {/* Our mission image start */}
+                <div className="anchor-section" id="ourMission">
+                    <div className="block">
+                        <div className="inner">
+                            <div className="c-heading text-center">
+                                <div className="c-heading__top">
+                                    <h2 className="text-default">Our mission</h2>
+                                </div>
+
+                                <div className="c-heading__bottom">
+                                    <div className="c-heading__long-desc">
+                                    <h3 className="heading-7">Logbase는 모든 기업이 행동데이터(로그)를 생성부터 활용까지 손쉽게 운영할 수 있도록 돕습니다.</h3>
+                                    <p className="feature-description-text">솔루션 제공에 그치지 않고, <strong>로그 문제를 진단하고 최적화하는 컨설팅</strong>을 통해 단기간에 실행 가능한 개선안을 제시합니다.</p>
+                                    <p className="feature-description-text">기업이 주어진 상황, 즉 로그의 유실문제 해결, 검증도구만 도입하기, 인프라/SaaS 도입없이 로그 프로세스만 정립하기 등 고객에게 필요한 상황에 맞추어 해결방안을 제시해드립니다. </p>
+                                    <p className="feature-description-text">빠르지 않더라도 천천히 저희와 함께 걷는것 만으로 원하는 데이터를 전략적으로 손쉽게 얻을 수 있습니다.</p>
+                                    <br /> <br /> <br /> <br />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid-features">
+
+                                <div className="box-feature box-feature--s2-low is-double" style={{ backgroundColor: '#000a17' }}>
+                                    <div className="box-feature__info">
+                                        <h3 className="heading-5 box-feature__title" style={{ color: 'white' }}>지금 시작하세요. 당신의 행동데이터 전문성을 함께 올릴 기회입니다.</h3>
+                                        <p><a onClick={() => setShowNewsletter(true)} className="button button--large--outline--white--rounded">뉴스레터 신청</a>
+                                        &nbsp;&nbsp;&nbsp;<a onClick={() => setShowInquiry(true)} className="button button--large--outline--white--rounded">문의하기</a></p>
+                                    </div>
+                                    <div className="box-feature__photo">
+                                        <img src="/images/bg-ai.png" alt="" />
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                {/* Our mission image end */}
+
+                {/* About Us image start */}
+                <div className="anchor-section" id="aboutUs">
+                    <div className="block">
+                        <div className="inner">
+                            <div className="c-heading text-center">
+                                <div className="c-heading__top">
+                                    <h2 className="text-default">About Us</h2>
+                                </div>
+
                                 <div className="c-heading__middle">
-                                    <h3 className="heading-5">Choose the<br />best plan for you.</h3>
+                                    <h3 className="heading-1"></h3>
                                 </div>
+                                {/*
+                        <div className="c-heading__bottom">
+                            <div className="c-heading__long-desc">
+                            {/*<h3 className="heading-7">로그베이스의 행동데이터는 ILOG 솔루션으로 기업의 변화를 시작합니다.</h3>
+                            <p>로그베이스는 모든 기업이 행동데이터(로그)를 생성부터 활용까지의 단계를 손쉽게 운영하는데 도움을 제공합니다.<br />
+                            이를 위해 솔루션의 제공뿐만 아니라 로그문제를 해결하는 컨설팅을 통해 로그 최적화를 단기간에 수립할 수 있습니다. </p>
+                            <p>행동데이터는 아직 음지에서 양지로 나오지 않은 영역인데요.<br />
+                            음지에서 어렵게 일하지 마시고, 저희와 함께 문제를 인식하고 명확하게 정의해서 해결 방안을 찾으시기 바랍니다. 그 길을 저희가 함께 하겠습니다.</p>
                             </div>
                         </div>
-                    </div>
-                    <div className="p-heading__col p-heading__col--bottom">
-                        <div className="c-toggle">
-                            <div className="c-toggle__col">
-                                <strong>Billed monthly</strong>
+                        */}
                             </div>
-                            <div className="c-toggle__col">
-                                <div className="check-toggle" data-controller="change-plan">
-                                                                          <input id="1607250607" className="" type="checkbox" defaultChecked={true} data-action="change->change-plan#change" />
-                                    <label className="check-toggle__label" htmlFor="1607250607">
-                                        <span className="check-toggle__ball"></span>
-                                    </label>
+                            <div className="grid-features" style={{ display: 'flex', justifyContent: 'center' }}>
+                                {/* 기존 세로 타임라인 (주석처리) */}
+                                {/* <div className="company-timeline">
+                            <div className="timeline-item">
+                                <div className="timeline-dot"></div>
+                                <div className="timeline-content">
+                                    <div className="timeline-year">~2019</div>
+                                    <div className="timeline-title">11번가 로그TF</div>
+                                    <div className="timeline-description">행동데이터 분석 및 로그 시스템 구축</div>
                                 </div>
                             </div>
-                            <div className="c-toggle__col">
-                                <strong>
-                                    Billed annually
-                                </strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="plans">
-                    <div className="plan plan--pro is-dark">
-                        <div className="plan__inner">
-                            <div className="plan__header">
-                                <div className="plan__title">
-                                    Basic<br />Plan Member
-                                </div>
-                                <div className="plan__amount js-price-plan" data-controller="show-plan" data-show-plan-annually-value="$6.7" data-show-plan-monthly-value="$15" data-show-plan-annually-without-discount-value="$666.66" data-show-plan-monthly-without-discount-value="$15">
-                                    
-        <span className="plan__price">
-            <strong data-show-plan-target="price">6.7</strong>
-            <sup>
-                $
-                <span className="text-red text-strikethrough is-hidden" data-show-plan-target="priceWithoutDiscount">
-                    
-                </span>
-            </sup>
-        </span>
-        /
-        <span data-show-plan-target="period">month</span>
-        <div className="plan__discounts" data-show-plan-target="discount">
-                        <span>Billed annually you</span>
-                            <div className="plan__budgets">
-                    <span className="budget-tag budget-tag--solid--red">save $96</span> <span className="budget-tag budget-tag--solid--yellow">-58%</span>
-                </div>
-                            </div>
-
-
-                                </div>
-                                <div>
-                                                                        <a href="https://www.awwwards.com/plans/basic-plan" className="button button--large--outline--white--rounded">Select Basic</a>
-                                                                </div>
-                            </div>
-                            <div className="plan__footer">
-                                <ul className="plan__list">
-                                                                        <li>10% off on website submissions</li>
-                                                                        <li>10% off on market products</li>
-                                                                        <li>60% discount on courses (excluding MasterclassNamees)</li>
-                                                                        <li>Featured in 1 category</li>
-                                                                        <li>Directory Listing: Include your profile in our Professional Directory</li>
-                                                                        <li>Mood Board Tool (coming soon)</li>
-                                                                        <li>Access to exclusive content (videos, books, articles)</li>
-                                                                        <li>Receive dedicated email assistance.</li>
-                                                                        <li>Professional Profile: Create a standout profile on Awwwards</li>
-                                                                        <li>Add a showcase to your profile at no extra cost</li>
-                                                                        <li>Add collaborators to websites</li>
-                                                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="plan plan--pro is-dark">
-                        <div className="plan__inner">
-                            <div className="plan__header">
-                                <div className="plan__title">
-                                    Professional<br />Plan Member
-                                </div>
-                                <div className="plan__amount js-price-plan" data-controller="show-plan" data-show-plan-annually-value="$13.8" data-show-plan-monthly-value="$26" data-show-plan-annually-without-discount-value="$13.75" data-show-plan-monthly-without-discount-value="$26">
-                                    
-        <span className="plan__price">
-            <strong data-show-plan-target="price">13.8</strong>
-            <sup>
-                $
-                <span className="text-red text-strikethrough is-hidden" data-show-plan-target="priceWithoutDiscount">
-                    
-                </span>
-            </sup>
-        </span>
-        /
-        <span data-show-plan-target="period">month</span>
-        <div className="plan__discounts" data-show-plan-target="discount">
-                        <span>Billed annually you</span>
-                            <div className="plan__budgets">
-                    <span className="budget-tag budget-tag--solid--red">save $144</span> <span className="budget-tag budget-tag--solid--yellow">-58%</span>
-                </div>
-                            </div>
-
-
-                                </div>
-                                <div>
-                                                                        <a href="https://www.awwwards.com/plans/professional-plan" className="button button--large--outline--white--rounded">Select Professional</a>
-                                                                </div>
-                                <div className="plan__tag budget-tag text-uppercase">Recommended</div>
-                            </div>
-                            <div className="plan__footer">
-                                <ul className="plan__list">
-
-                                    <li>All Basic features</li>
-
-                                                                        <li>30% off on website submissions</li>
-                                                                        <li>30% off on market products</li>
-                                                                        <li>75% discount on courses</li>
-                                                                        <li>Annual Free Submission</li>
-                                                                        <li>Featured in 3 distinct categories</li>
-                                                                        <li>30% discount on job offers</li>
-                                                                        <li>Promotional video in profile (Coming Soon)</li>
-                                                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="plan plan--pro">
-                        <div className="plan__inner">
-                            <div className="plan__header">
-                                <div className="plan__title">
-                                    International<br />Plan Member
-                                </div>
-                                <div className="plan__amount js-price-plan" data-controller="show-plan" data-show-plan-annually-value="$324" data-show-plan-monthly-value="$555" data-show-plan-annually-without-discount-value="$324" data-show-plan-monthly-without-discount-value="$555">
-                                    
-        <span className="plan__price">
-            <strong data-show-plan-target="price">324</strong>
-            <sup>
-                $
-                <span className="text-red text-strikethrough is-hidden" data-show-plan-target="priceWithoutDiscount">
-                    
-                </span>
-            </sup>
-        </span>
-        /
-        <span data-show-plan-target="period">month</span>
-        <div className="plan__discounts" data-show-plan-target="discount">
-                        <span>Billed annually you</span>
-                            <div className="plan__budgets">
-                    <span className="budget-tag budget-tag--solid--red">save $2772</span> <span className="budget-tag budget-tag--solid--yellow">-58%</span>
-                </div>
-                            </div>
-
-
-                                </div>
-                                <div>
-                                    <a href="https://www.awwwards.com/plans/international-plan" className="button button--large--outline--rounded">Select International</a>
+                            
+                            <div className="timeline-item">
+                                <div className="timeline-dot"></div>
+                                <div className="timeline-content">
+                                    <div className="timeline-year">~2022</div>
+                                    <div className="timeline-title">SK브로드밴드 행동데이터 파트리더</div>
+                                    <div className="timeline-description">행동데이터 팀 리더십 및 전략 수립</div>
                                 </div>
                             </div>
-                            <div className="plan__footer">
-                                <ul className="plan__list">
-                                    <li>All Pro features</li>
-                                    <li>Featured in 5 distinct categories</li>
-                                    <li>50% discount on website submissions</li>
-                                    <li>50% discount for products on market</li>
-                                    <li>Featured Worldwide in Directory</li>
-                                    <li>Personal assistance</li>
-                                    <li>Featured on Directory</li>
-                                    <li>Featured on homepage</li>
-                                    <li>One social media mention</li>
-                                    <li>Animated avatar (Coming Soon)</li>
-                                    <li>Access to All Courses</li>
-                                    <li>5+ new courses added each month</li>
-                                    <li>Streaming supports up to 5 simultaneous IP connections</li>
-                                </ul>
+                            
+                            <div className="timeline-item">
+                                <div className="timeline-dot"></div>
+                                <div className="timeline-content">
+                                    <div className="timeline-year">~2024</div>
+                                    <div className="timeline-title">(주) 위대한 상상(요기요) 로그팀 리더</div>
+                                    <div className="timeline-description">요기요 플랫폼 로그 시스템 운영 및 분석</div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="c-view-all">
-                    <div className="c-view-all__row  text-medium">
-                        <span>Want access to all our Academy courses? </span>
-                                            <a href="https://www.awwwards.com/plans/creative-pro-plans" className="bt-ico-left">
-                            <svg className="ico-svg" viewBox="0 0 20 20" width="20">
-    <path d="M10 3L17 10L10 17" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-</svg>
+                            
+                            <div className="timeline-item">
+                                <div className="timeline-dot active"></div>
+                                <div className="timeline-content">
+                                    <div className="timeline-year">2024~</div>
+                                    <div className="timeline-title">(주)로그베이스 법인 설립</div>
+                                    <div className="timeline-description">행동데이터 전문 법인 운영 중</div>
+                                </div>
+                            </div>
+                            
+                            <div className="timeline-item">
+                                <div className="timeline-dot"></div>
+                                <div className="timeline-content">
+                                    <div className="timeline-year">2025년 상반기</div>
+                                    <div className="timeline-title">GS리테일 컨설팅</div>
+                                    <div className="timeline-description">행동데이터 분석 및 시스템 구축 컨설팅</div>
+                                </div>
+                            </div>
+                        </div> */}
 
-                    <strong className="link-underlined">Explore our Plans + Academy options</strong>
-                </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        플랜 테이블 블럭 end */}
+                                {/* 새로운 가로 타임라인 */}
+                                <div className="company-timeline-horizontal">
+                                    <div className="timeline-row">
+                                        <div className="timeline-card">
+                                            <div className="timeline-year">~2019</div>
+                                            <div className="timeline-title">11번가 로그TF</div>
+                                            <div className="timeline-description">행동데이터 분석 및 로그 시스템 구축</div>
+                                        </div>
 
-        {/* 플랜 테이블 블럭 start
-        <div className="anchor-section" id="LOREM-8">
-            <div className="block">
-                <div className="inner">
-                    {/* 플랜 테이블 헤더 Professional Plans 테이블 
-                    <div className="p-heading">
-                        <div className="p-heading__col">
-                            <div className="p-heading__top">
-                                <div className="c-heading c-heading--small">
-                                    <div className="c-heading__top">
-                                        <div>Professional Plans</div>
-                                    </div>
-                                    <div className="c-heading__middle">
-                                        <h3 className="heading-5">Choose the<br />best plan for you.</h3>
+                                        <div className="timeline-card">
+                                            <div className="timeline-year">~2022</div>
+                                            <div className="timeline-title">SK브로드밴드 행동데이터 파트리더</div>
+                                            <div className="timeline-description">행동데이터 팀 리더십 및 전략 수립</div>
+                                        </div>
+
+                                        <div className="timeline-card">
+                                            <div className="timeline-year">~2024</div>
+                                            <div className="timeline-title">(주) 위대한 상상(요기요) 로그팀 리더</div>
+                                            <div className="timeline-description">요기요 플랫폼 로그 시스템 운영 및 분석</div>
+                                        </div>
+
+                                        <div className="timeline-card">
+                                            <div className="timeline-year">2024~</div>
+                                            <div className="timeline-title">(주)로그베이스 법인 설립</div>
+                                            <div className="timeline-description">행동데이터 전문 법인 운영 중</div>
+                                        </div>
+
+                                        <div className="timeline-card">
+                                            <div className="timeline-year">2025년 상반기</div>
+                                            <div className="timeline-title">GS리테일 컨설팅</div>
+                                            <div className="timeline-description">행동데이터 분석 및 시스템 구축 컨설팅</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                        </div>
-                        <div className="p-heading__col">
-                            <div className="grid-plans">
-                                <div className="plan-box">
-                                    <p></p><div className="plan-box__title">Basic</div><p></p>
-                                    <p className="plan-box__desc"><small>Ideal for freelancers, independent professionals and entrepreneurs.</small></p>
-                                    <p><a href="https://www.awwwards.com/plans/basic-plan" className="button button--rounded">Buy Basic</a></p>
-                                </div>
-
-                                <div className="plan-box">
-                                    <p></p><div className="plan-box__title">Professional</div><p></p>
-                                    <p className="plan-box__desc"><small>The gold standard investment for all agencies and studios.</small></p>
-                                    <p><a href="https://www.awwwards.com/plans/professional-plan" className="button button--rounded">Buy Professional</a></p>
-                                </div>
-
-                                <div className="plan-box">
-                                    <p></p><div className="plan-box__title">International</div><p></p>
-                                    <p className="plan-box__desc"><small>The crème de la crème - high impact visibility for bold industry leaders.</small></p>
-                                    <p><a href="https://www.awwwards.com/plans/international-plan" className="button button--rounded">Buy International</a></p>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    {/* 플랜 테이블 내용 Benefits 테이블
-                    <div className="plans-compare hidden-lg">
-                        <div className="plans-compare__title">Benefits</div>
-                        <div className="plans-compare__table">
-                            <div className="plans-compare__row plans-compare__row--featured">
-                                <div className="plans-compare__col">
-                                    <ul className="plans-compare__list">
-                                        <li>10% off on website submissions</li>
-                                        <li>10% off on market products</li>
-                                        <li>60% discount on courses (excluding MasterclassNamees)</li>
-                                        <li>Featured in 1 category</li>
-                                        <li>Directory Listing: Include your profile in our Professional Directory</li>
-                                        <li>Mood Board Tool (coming soon)</li>
-                                        <li>Access to exclusive content (videos, books, articles)</li>
-                                        <li>Receive dedicated email assistance.</li>
-                                        <li>Professional Profile: Create a standout profile on Awwwards</li>
-                                        <li>Add a showcase to your profile at no extra cost</li>
-                                        <li>Add collaborators to websites</li>
-                                    </ul>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="20">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="20">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="20">
-                                    <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    30% off on website submissions
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                    <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                    <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                    <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                </svg>
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    30% off on market products
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                    <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    75% discount on courses
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Annual Free Submission
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                    <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Featured in 3 distinct categories
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    30% discount on job offers
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Promotional video in profile (Coming Soon)
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Featured in 5 distinct categories
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                                <div className="plans-compare__col">
-                                    <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-                                        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    50% discount on website submissions
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    50% discount for products on market
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Featured Worldwide in Directory
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Personal assistance
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Featured on Directory
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Featured on homepage
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    One social media mention
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Animated avatar (Coming Soon)
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Access to All Courses
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    5+ new courses added each month
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
-                            <div className="plans-compare__row">
-                                <div className="plans-compare__col">
-                                    Streaming supports up to 5 simultaneous IP connections
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg is-disabled" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                                <div className="plans-compare__col">
-                                            <svg className="ico-svg" viewBox="0 0 20 20" width="28">
-        <use xlinkHref="https://www.awwwards.com/assets/redesign/images/sprite-icons.svg?v=3#check-ok"></use>
-    </svg>
-
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        플랜 테이블 블럭 end */}
+                {/* About Us image end */}
 
-        {/* 피처 블럭 image start */}
-        <div className="anchor-section">
-            <div className="block">
-                <div className="inner">
-                    <div className="grid-features">
-                        <div className="box-feature box-feature--s2-low is-double" style={{ backgroundColor: '#000a17' }}>
-                            <div className="box-feature__info">
-                                <h3 className="heading-5 box-feature__title" style={{ color: 'white' }}>Start now and increase your recognition as a professional.</h3>
-                                <p><a href="https://www.awwwards.com/pro#price-table" className="button button--large--outline--white--rounded">Start Pro Membership</a></p>
-                            </div>
-                            <div className="box-feature__photo">
-                                <img src="/images/bg-ai.png" alt="" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {/* 피처 블럭 image end */}
 
-        {/* 메뉴 블럭 start */}
-        <div className="menu-float js-menufloat-show is-visible">
-            <div className="inner">
-                <div className="menu-float__inner">
-                    
-                    <div className="menu-float__wrapper">
-                        {/* 메뉴 블럭 start logo */}
-                        <div className="menu-float__bottom">
-                            <div className="menu-float__layout menu-float__layout--secondary">
-                                <div className="menu-float__content">
-                                    <div className="menu-float__progress">
-                                        <div className="menu-float__bar js-menu-progress"></div>
+                {/* 메뉴 블럭 start */}
+                <div className="menu-float js-menufloat-show is-visible">
+                    <div className="inner">
+                        <div className="menu-float__inner">
+
+                            <div className="menu-float__wrapper">
+                                {/* 메뉴 블럭 start logo */}
+                                <div className="menu-float__bottom">
+                                    <div className="menu-float__layout menu-float__layout--secondary">
+                                        <div className="menu-float__content">
+                                            <div className="menu-float__progress">
+                                                <div className="menu-float__bar js-menu-progress"></div>
+                                            </div>
+                                            <ul className="menu-float__nav">
+                                                <li><a className="menu-float__item js-menu-anchor" href="#features">Features</a></li>
+                                                <li><a className="menu-float__item js-menu-anchor" href="#background">Background</a></li>
+                                                <li><a className="menu-float__item js-menu-anchor" href="#differentiator">Differentiator</a></li>
+                                                <li><a className="menu-float__item js-menu-anchor" href="#ourMission">Our Mission</a></li>
+                                                <li><a className="menu-float__item js-menu-anchor" href="#aboutUs">About Us</a></li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <ul className="menu-float__nav">
-                                        <li><a className="menu-float__item js-menu-anchor" href="#features">Features</a></li>
-                                        <li><a className="menu-float__item js-menu-anchor" href="#Background">Background</a></li>
-                                        <li><a className="menu-float__item js-menu-anchor" href="#">Differentiator</a></li>
-                                        <li><a className="menu-float__item js-menu-anchor" href="#OurMission">Our Mission</a></li>
-                                        <li><a className="menu-float__item js-menu-anchor" href="#AboutUs">About Us</a></li>
-                                    </ul>
                                 </div>
+                                {/* 메뉴 블럭 end logo */}
                             </div>
+
                         </div>
-                        {/* 메뉴 블럭 end logo */}
                     </div>
-
                 </div>
-            </div>
-        </div>
-        {/* 메뉴 블럭 end */}
+                {/* 메뉴 블럭 end */}
 
-      </section>
+            </section>
 
-    </>
-  );
+            {/* 문의하기 모달 */}
+            <InquiryForm
+                show={showInquiry}
+                onClose={() => setShowInquiry(false)}
+            />
+
+            {/* 뉴스레터 신청 모달 */}
+            <NewsletterModal
+                show={showNewsletter}
+                onClose={() => setShowNewsletter(false)}
+            />
+
+        </>
+    );
 } 

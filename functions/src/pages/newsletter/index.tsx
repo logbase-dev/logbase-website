@@ -10,6 +10,7 @@ interface NewsletterMeta {
   url: string;
   sentDate: string;
   htmlFilePath: string;
+  publicUrl: string;
   filename: string;
   recipients: Recipient[];
 }
@@ -44,6 +45,9 @@ export default function NewsletterPage() {
   const [allRecipients, setAllRecipients] = useState<Recipient[]>([]);
   const [loadingRecipients, setLoadingRecipients] = useState(false);
   const [sending, setSending] = useState(false);
+  
+  // 뷰 모드 상태 (목록/카드)
+  const [viewMode, setViewMode] = useState<'list' | 'card'>('card');
 
   useEffect(() => {
     fetchNewsletters();
@@ -206,6 +210,11 @@ export default function NewsletterPage() {
     }
   };
 
+  // 뷰 모드 토글 함수
+  const toggleViewMode = () => {
+    setViewMode(prev => prev === 'list' ? 'card' : 'list');
+  };
+
   if (loading) {
     return (
       <div className="container">
@@ -218,85 +227,164 @@ export default function NewsletterPage() {
     <div className="container">
       <div className="header">
         <h1>뉴스레터 목록</h1>
-        {user && (
-          <div className="header-buttons">
-            <button 
-              type="button" 
-              className="btn-subscribers"
-              onClick={() => window.location.href = '/newsletter/subscribers'}
-            >
-              신청자 관리
-            </button>
-            <button 
-              type="button" 
-              className="btn-new"
-              onClick={() => window.location.href = '/newsletter/write'}
-            >
-              새 뉴스레터 작성
-            </button>
-          </div>
-        )}
+        <div className="header-controls">
+          {/* 뷰 모드 토글 버튼 */}
+          <button
+            type="button"
+            onClick={toggleViewMode}
+            className="view-mode-toggle"
+            style={{
+              background: viewMode === 'card' ? '#3b82f6' : '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '8px 16px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              marginRight: '12px',
+              fontWeight: '500'
+            }}
+          >
+            {viewMode === 'card' ? '📋 목록으로 보기' : '🃏 카드로 보기'}
+          </button>
+          
+          {user && (
+            <div className="header-buttons">
+              <button 
+                type="button" 
+                className="btn-subscribers"
+                onClick={() => window.location.href = '/newsletter/subscribers'}
+              >
+                신청자 관리
+              </button>
+              <button 
+                type="button" 
+                className="btn-new"
+                onClick={() => window.location.href = '/newsletter/write'}
+              >
+                새 뉴스레터 작성
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       
-      <table>
-        <thead>
-          <tr>
-            <th>제목</th>
-            <th>발송일</th>
-            <th style={{ textAlign: 'center' }}>액션</th>
-          </tr>
-        </thead>
-        <tbody>
-          {newsletters.length > 0 ? (
-            newsletters.map((item, index) => {
-              return (
-                <tr key={index}>
-                  <td>{item.title}</td>
-                  <td>{new Date(item.sentDate).toLocaleDateString('ko-KR')}</td>
-                  <td className="actions">
-                    <button 
-                      type="button" 
-                      className="btn-preview"
-                      onClick={() => window.open(item.htmlFilePath, '_blank')}
-                      title="새 창에서 미리보기"
-                    >
-                      미리보기
-                    </button>
-                    {user && (
-                      <>
-                        <button 
-                          type="button" 
-                          className="btn-send"
-                          onClick={() => handleSendClick(item)}
-                          title="이메일 발송"
-                        >
-                          📧 발송
-                        </button>
-                        <Link href={`/newsletter/edit/${encodeURIComponent(item.filename)}`}>
-                          <button type="button" className="btn-edit">편집</button>
-                        </Link>
-                        <button 
-                          type="button" 
-                          className="btn-delete"
-                          onClick={() => handleDelete(item.filename)}
-                        >
-                          삭제
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              );
-            })
-          ) : (
+      {/* 목록 모드 */}
+      {viewMode === 'list' && (
+        <table>
+          <thead>
             <tr>
-              <td colSpan={3} style={{ textAlign: 'center' }}>
-                뉴스레터가 없습니다.
-              </td>
+              <th>제목</th>
+              <th>발송일</th>
+              <th style={{ textAlign: 'center' }}>액션</th>
             </tr>
+          </thead>
+          <tbody>
+            {newsletters.length > 0 ? (
+              newsletters.map((item, index) => {
+                return (
+                  <tr key={index}>
+                    <td>{item.title}</td>
+                    <td>{new Date(item.sentDate).toLocaleDateString('ko-KR')}</td>
+                    <td className="actions">
+                      <button 
+                        type="button" 
+                        className="btn-preview"
+                        onClick={() => window.open(item.publicUrl, '_blank')}
+                        title="새 창에서 미리보기"
+                      >
+                        미리보기
+                      </button>
+                      {user && (
+                        <>
+                          <button 
+                            type="button" 
+                            className="btn-send"
+                            onClick={() => handleSendClick(item)}
+                            title="이메일 발송"
+                          >
+                            📧 발송
+                          </button>
+                          <Link href={`/newsletter/edit/${encodeURIComponent(item.filename)}`}>
+                            <button type="button" className="btn-edit">편집</button>
+                          </Link>
+                          <button 
+                            type="button" 
+                            className="btn-delete"
+                            onClick={() => handleDelete(item.filename)}
+                          >
+                            삭제
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={3} style={{ textAlign: 'center' }}>
+                  뉴스레터가 없습니다.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
+
+      {/* 카드 모드 */}
+      {viewMode === 'card' && (
+        <div className="newsletter-grid">
+          {newsletters.length > 0 ? (
+            newsletters.map((item, index) => (
+              <div key={index} className="newsletter-card">
+                <div className="newsletter-card-header">
+                  <h3 className="newsletter-title">{item.title}</h3>
+                  <div className="newsletter-date">
+                    {new Date(item.sentDate).toLocaleDateString('ko-KR')}
+                  </div>
+                </div>
+                <div className="newsletter-card-actions">
+                  <button 
+                    type="button" 
+                    className="btn-preview"
+                    onClick={() => window.open(item.publicUrl, '_blank')}
+                    title="새 창에서 미리보기"
+                  >
+                    미리보기
+                  </button>
+                  {user && (
+                    <>
+                      <button 
+                        type="button" 
+                        className="btn-send"
+                        onClick={() => handleSendClick(item)}
+                        title="이메일 발송"
+                      >
+                        📧 발송
+                      </button>
+                      <Link href={`/newsletter/edit/${encodeURIComponent(item.filename)}`}>
+                        <button type="button" className="btn-edit">편집</button>
+                      </Link>
+                      <button 
+                        type="button" 
+                        className="btn-delete"
+                        onClick={() => handleDelete(item.filename)}
+                      >
+                        삭제
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              뉴스레터가 없습니다.
+            </div>
           )}
-        </tbody>
-      </table>
+        </div>
+      )}
 
       {/* 발송 설정 모달 */}
       {showSendModal && selectedNewsletter && (

@@ -43,32 +43,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { guid, matchedKeywords } = req.body;
       
       if (!guid || !Array.isArray(matchedKeywords)) {
+        console.error('❌ 잘못된 파라미터:', { guid, matchedKeywords });
         return res.status(400).json({ success: false, error: 'Invalid parameters' });
       }
 
-      console.log('Keywords API 호출:', { guid, matchedKeywords });
+      console.log('🔧 Keywords API 호출:', { guid, matchedKeywords });
+
+      // 타임아웃 설정 (25초)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database operation timeout')), 25000);
+      });
 
       const rssCollection = collection(db, 'rss_items');
       const q = query(rssCollection, where('guid', '==', guid));
-      const querySnapshot = await getDocs(q);
+      
+      // 쿼리 실행을 타임아웃과 함께
+      const querySnapshot = await Promise.race([
+        getDocs(q),
+        timeoutPromise
+      ]) as any;
       
       if (querySnapshot.empty) {
-        console.log('RSS 아이템을 찾을 수 없음:', guid);
+        console.log('❌ RSS 아이템을 찾을 수 없음:', guid);
         return res.status(404).json({ success: false, error: 'RSS item not found' });
       }
 
       const doc = querySnapshot.docs[0];
-      await updateDoc(doc.ref, {
-        matchedKeywords: matchedKeywords,
-        updatedAt: new Date()
-      });
+      
+      // 업데이트 실행을 타임아웃과 함께
+      await Promise.race([
+        updateDoc(doc.ref, {
+          matchedKeywords: matchedKeywords,
+          updatedAt: new Date()
+        }),
+        timeoutPromise
+      ]);
 
-      console.log('키워드 업데이트 성공:', { guid, matchedKeywords });
+      console.log('✅ 키워드 업데이트 성공:', { guid, matchedKeywords });
       res.status(200).json({ success: true, message: 'Keywords updated successfully' });
 
-    } catch (error) {
-      console.error('Keywords API 에러:', error);
-      res.status(500).json({ success: false, error: 'Internal server error' });
+    } catch (error: any) {
+      console.error('❌ Keywords API 에러:', error);
+      if (error.message === 'Database operation timeout') {
+        res.status(408).json({ success: false, error: 'Database operation timeout' });
+      } else {
+        res.status(500).json({ success: false, error: 'Internal server error: ' + error.message });
+      }
     }
   } else {
     res.setHeader('Allow', ['GET', 'POST']);

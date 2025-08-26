@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { adminBucket } from '@/lib/firebase-admin';
 
 interface Recipient {
   id: string;
@@ -57,9 +58,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const newslettersJsonPath = path.join(newslettersDir, 'newsletters.json');
 
     try {
-      // newsletters.json 파일 읽기
-      const jsonContent = await fs.readFile(newslettersJsonPath, 'utf-8');
-      const newslettersArr = JSON.parse(jsonContent);
+      let newslettersArr = [];
+
+      // Firebase Functions 환경인지 확인
+      const isFirebaseFunctions = process.env.FIREBASE_CONFIG || process.env.FUNCTION_TARGET;
+
+      if (isFirebaseFunctions) {
+        // Firebase 서버에서는 Cloud Storage에서 뉴스레터 목록 가져오기
+        console.log('[NEWSLETTER-UPDATE] Firebase Functions 환경에서 Cloud Storage 사용');
+        
+        try {
+          // Cloud Storage에서 newsletters.json 파일 읽기
+          const file = adminBucket.file('newsletters/newsletters.json');
+          const [exists] = await file.exists();
+          
+          if (exists) {
+            const [content] = await file.download();
+            const jsonContent = content.toString('utf-8');
+            newslettersArr = JSON.parse(jsonContent);
+            if (!Array.isArray(newslettersArr)) newslettersArr = [];
+            console.log(`[NEWSLETTER-UPDATE] Cloud Storage에서 ${newslettersArr.length}개 뉴스레터 로드`);
+          } else {
+            console.log('[NEWSLETTER-UPDATE] Cloud Storage에 newsletters.json 파일이 없습니다.');
+            return res.status(404).json({ success: false, message: '뉴스레터 목록을 찾을 수 없습니다.' });
+          }
+        } catch (error) {
+          console.error('[NEWSLETTER-UPDATE] Cloud Storage 읽기 실패:', error);
+          return res.status(404).json({ success: false, message: '뉴스레터 목록을 찾을 수 없습니다.' });
+        }
+      } else {
+        // 로컬 환경에서는 로컬 파일 사용
+        console.log('[NEWSLETTER-UPDATE] 로컬 환경에서 로컬 파일 사용');
+        const jsonContent = await fs.readFile(newslettersJsonPath, 'utf-8');
+        newslettersArr = JSON.parse(jsonContent);
+        if (!Array.isArray(newslettersArr)) newslettersArr = [];
+        console.log(`[NEWSLETTER-UPDATE] 로컬 파일에서 ${newslettersArr.length}개 뉴스레터 로드`);
+      }
       
       if (!Array.isArray(newslettersArr)) {
         return res.status(404).json({ success: false, message: '뉴스레터 목록을 찾을 수 없습니다.' });
@@ -156,9 +190,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const htmlTemplate = templateContent;
 
-      // HTML 파일 업데이트
-      await fs.writeFile(htmlFullPath, htmlTemplate, 'utf-8');
-
       // 메타데이터 업데이트
       const updatedNewsletter: NewsletterMeta = {
         ...existingNewsletter,
@@ -172,17 +203,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // newsletters.json 배열에서 해당 항목 업데이트
       newslettersArr[newsletterIndex] = updatedNewsletter;
 
-      // 메타데이터 업데이트
-      const functionsNewslettersJsonPath = path.join(process.cwd(), 'functions', 'public', 'newsletters', 'newsletters.json');
-
-      // 메인 프로젝트 파일에 저장
-      await fs.writeFile(newslettersJsonPath, JSON.stringify(newslettersArr, null, 2), 'utf-8');
-      
-      // Firebase Functions 파일에도 저장 (동기화)
-      try {
-        await fs.writeFile(functionsNewslettersJsonPath, JSON.stringify(newslettersArr, null, 2), 'utf-8');
-      } catch (functionsError) {
-        // ignore
+      if (isFirebaseFunctions) {
+        // Firebase 서버에서는 Cloud Storage에 저장
+        console.log('[NEWSLETTER-UPDATE] Firebase Functions 환경에서 Cloud Storage 사용');
+        
+        try {
+          // 1. Cloud Storage에 HTML 파일 저장
+          const storagePath = `newsletters/${filename}.html`;
+          const file = adminBucket.file(storagePath);
+          await file.save(htmlTemplate, {
+            metadata: {
+              contentType: 'text/html',
+              cacheControl: 'public, max-age=3600'
+            }
+          });
+          console.log(`[NEWSLETTER-UPDATE] Cloud Storage HTML 파일 저장 완료: ${storagePath}`);
+          
+          // 2. Cloud Storage에 newsletters.json 업데이트
+          const jsonFile = adminBucket.file('newsletters/newsletters.json');
+          await jsonFile.save(JSON.stringify(newslettersArr, null, 2), {
+            metadata: { contentType: 'application/json' }
+          });
+          console.log('[NEWSLETTER-UPDATE] Cloud Storage newsletters.json 업데이트 완료');
+        } catch (storageError) {
+          console.error('[NEWSLETTER-UPDATE] Cloud Storage 저장 실패:', storageError);
+          throw new Error('Cloud Storage 저장 실패');
+        }
+      } else {
+        // 로컬 환경에서는 로컬 파일 사용
+        console.log('[NEWSLETTER-UPDATE] 로컬 환경에서 로컬 파일 사용');
+        
+        // HTML 파일 업데이트
+        await fs.writeFile(htmlFullPath, htmlTemplate, 'utf-8');
+        
+        // newsletters.json 업데이트
+        await fs.writeFile(newslettersJsonPath, JSON.stringify(newslettersArr, null, 2), 'utf-8');
+        
+        // Firebase Functions 파일에도 저장 (동기화)
+        const functionsNewslettersJsonPath = path.join(process.cwd(), 'functions', 'public', 'newsletters', 'newsletters.json');
+        try {
+          await fs.writeFile(functionsNewslettersJsonPath, JSON.stringify(newslettersArr, null, 2), 'utf-8');
+        } catch (functionsError) {
+          // ignore
+        }
       }
 
       return res.status(200).json({

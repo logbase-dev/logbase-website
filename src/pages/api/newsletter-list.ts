@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
+import { adminBucket } from '@/lib/firebase-admin';
 
 interface NewsletterMeta {
   title: string;
@@ -8,7 +9,8 @@ interface NewsletterMeta {
   url: string;
   sentDate: string;
   htmlFilePath: string;
-  filename: string; // 실제 JSON 파일명 추가
+  publicUrl: string;
+  filename: string;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -17,23 +19,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // newsletters 디렉토리 경로
-    const newslettersDir = path.resolve(process.cwd(), 'public/newsletters');
-    const newslettersJsonPath = path.join(newslettersDir, 'newsletters.json');
     let newsletters: NewsletterMeta[] = [];
 
-    try {
-      // newsletters.json 파일 읽기
-      const jsonContent = await fs.readFile(newslettersJsonPath, 'utf-8');
-      newsletters = JSON.parse(jsonContent);
-      if (!Array.isArray(newsletters)) newsletters = [];
-    } catch (error) {
-      console.error('newsletters.json 파일을 읽을 수 없습니다:', error);
-      newsletters = [];
+    // Firebase Functions 환경인지 확인
+    const isFirebaseFunctions = process.env.FIREBASE_CONFIG || process.env.FUNCTION_TARGET;
+
+    if (isFirebaseFunctions) {
+      // Firebase 서버에서는 Cloud Storage에서 뉴스레터 목록 가져오기
+      console.log('[NEWSLETTER-LIST] Firebase Functions 환경에서 Cloud Storage 사용');
+      
+      try {
+        // Cloud Storage에서 newsletters.json 파일 읽기
+        const file = adminBucket.file('newsletters/newsletters.json');
+        const [exists] = await file.exists();
+        
+        if (exists) {
+          const [content] = await file.download();
+          const jsonContent = content.toString('utf-8');
+          newsletters = JSON.parse(jsonContent);
+          if (!Array.isArray(newsletters)) newsletters = [];
+          console.log(`[NEWSLETTER-LIST] Cloud Storage에서 ${newsletters.length}개 뉴스레터 로드`);
+        } else {
+          console.log('[NEWSLETTER-LIST] Cloud Storage에 newsletters.json 파일이 없습니다.');
+          newsletters = [];
+        }
+      } catch (error) {
+        console.error('[NEWSLETTER-LIST] Cloud Storage 읽기 실패:', error);
+        newsletters = [];
+      }
+    } else {
+      // 로컬 환경에서는 로컬 파일 사용
+      console.log('[NEWSLETTER-LIST] 로컬 환경에서 로컬 파일 사용');
+      const newslettersJsonPath = path.resolve(process.cwd(), 'public/newsletters/newsletters.json');
+      
+      try {
+        const jsonContent = await fs.readFile(newslettersJsonPath, 'utf-8');
+        newsletters = JSON.parse(jsonContent);
+        if (!Array.isArray(newsletters)) newsletters = [];
+        console.log(`[NEWSLETTER-LIST] 로컬 파일에서 ${newsletters.length}개 뉴스레터 로드`);
+      } catch (error) {
+        console.error('[NEWSLETTER-LIST] 로컬 파일 읽기 실패:', error);
+        newsletters = [];
+      }
     }
 
     // 발송일 기준으로 내림차순 정렬 (최신순)
     newsletters.sort((a, b) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
+
+    console.log(`뉴스레터 목록 조회: ${newsletters.length}개`);
 
     return res.status(200).json({
       success: true,

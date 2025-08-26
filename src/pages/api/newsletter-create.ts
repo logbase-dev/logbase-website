@@ -5,6 +5,15 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { adminBucket } from '@/lib/firebase-admin';
+import { generateUnsubscribeUrl } from '@/lib/newsletter-utils';
+
+// 런타임 환경 감지를 위한 설정
+console.log('[CONFIG] 런타임 환경 감지 시작...');
+console.log('[CONFIG] FIREBASE_CONFIG:', process.env.FIREBASE_CONFIG ? '존재함' : '없음');
+console.log('[CONFIG] FUNCTION_TARGET:', process.env.FUNCTION_TARGET || '없음');
+console.log('[CONFIG] FIREBASE_FUNCTION_URL:', process.env.FIREBASE_FUNCTION_URL || '없음');
+console.log('[CONFIG] VERCEL_URL:', process.env.VERCEL_URL || '없음');
 
 interface NewsletterData {
   title: string;
@@ -94,9 +103,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       month: 'long',
       day: 'numeric'
     });
-    templateContent = templateContent.replace(/{{제목}}/g, title);
-    templateContent = templateContent.replace(/{{발송일}}/g, formattedDate);
-    templateContent = templateContent.replace(/{{본문 내용 들어가는 곳}}/g, content.replace(/\n/g, '<br>'));
+    templateContent = templateContent.replace(/{{title}}/g, title);
+    templateContent = templateContent.replace(/{{sent_date}}/g, formattedDate);
+    templateContent = templateContent.replace(/{{content}}/g, content.replace(/\n/g, '<br>'));
+    
+    // 구독 취소 URL은 MailerLite personalization에서 처리하므로 그대로 남겨둠
+    // templateContent = templateContent.replace(/{{UNSUBSCRIBE_URL}}/g, unsubscribeUrl);
 
     // --- Start URL Crawling Logic ---
     let insightSectionHtml = '';
@@ -191,49 +203,153 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 3. Create a safe filename
     const filename = `newsletter_${sentDate}_${Date.now()}.html`;
 
-    // 4. Define save directory and ensure it exists
-    const saveDir = path.resolve(process.cwd(), 'public/newsletters');
-    await fs.mkdir(saveDir, { recursive: true });
+    // 4. Cloud Storage에 파일 업로드
+    const storagePath = `newsletters/${filename}`;
+    const file = adminBucket.file(storagePath);
     
-    const savePath = path.join(saveDir, filename);
-    const publicPath = `/newsletters/${filename}`;
-
-    // 5. Write the new file
-    await fs.writeFile(savePath, templateContent, 'utf-8');
-    console.log(`[SUCCESS] HTML file created at: ${publicPath}`);
-
-    // 6. Update newsletters.json (목록 관리)
-    const newslettersJsonPath = path.join(saveDir, 'newsletters.json');
-    const functionsNewslettersJsonPath = path.join(process.cwd(), 'functions', 'public', 'newsletters', 'newsletters.json');
-    let newslettersArr: NewsletterMeta[] = [];
-    try {
-      const jsonContent = await fs.readFile(newslettersJsonPath, 'utf-8');
-      newslettersArr = JSON.parse(jsonContent);
-      if (!Array.isArray(newslettersArr)) newslettersArr = [];
-    } catch {
-      newslettersArr = [];
+    console.log(`[STORAGE] Cloud Storage 업로드 시작: ${storagePath}`);
+    console.log(`[STORAGE] 파일 크기: ${templateContent.length} bytes`);
+    
+    // 미리보기 URL 생성 (API 경로 사용)
+    let baseUrl = 'https://logbase.kr'; // 기본값
+    
+    // 런타임에 실제 배포 URL 감지
+    if (process.env.FIREBASE_CONFIG || process.env.FUNCTION_TARGET) {
+      // Firebase Functions 환경
+      const functionUrl = process.env.FIREBASE_FUNCTION_URL || process.env.VERCEL_URL;
+      
+      if (functionUrl && functionUrl.includes('logbase.kr')) {
+        baseUrl = 'https://logbase.kr';
+      } else if (functionUrl && functionUrl.includes('localhost')) {
+        baseUrl = 'http://localhost:3000';
+      } else {
+        // 기본값 사용
+        baseUrl = 'https://logbase.kr';
+      }
+      
+      console.log(`[CONFIG] Firebase Functions 환경 - 감지된 URL: ${functionUrl}, 사용할 baseUrl: ${baseUrl}`);
+    } else {
+      // 로컬 환경
+      baseUrl = 'http://localhost:3000';
+      console.log(`[CONFIG] 로컬 환경 - baseUrl: ${baseUrl}`);
     }
-    const metadata: NewsletterMeta = {
+    
+    const previewUrl = `${baseUrl}/api/newsletter-preview/${filename.replace('.html', '')}`;
+    
+    try {
+      // HTML 파일을 Cloud Storage에 업로드
+      await file.save(templateContent, {
+        metadata: {
+          contentType: 'text/html',
+          cacheControl: 'public, max-age=3600'
+        }
+      });
+      console.log(`[SUCCESS] HTML file uploaded to Cloud Storage: ${storagePath}`);
+      console.log(`[SUCCESS] Preview URL generated: ${previewUrl}`);
+      
+    } catch (uploadError) {
+      console.error('[ERROR] Cloud Storage 업로드 실패:', uploadError);
+      console.error('[ERROR] 에러 상세:', {
+        message: uploadError instanceof Error ? uploadError.message : 'Unknown error',
+        stack: uploadError instanceof Error ? uploadError.stack : undefined,
+        storagePath,
+        fileSize: templateContent.length
+      });
+      return res.status(500).json({
+        success: false,
+        message: '뉴스레터 파일 업로드에 실패했습니다.',
+        error: uploadError instanceof Error ? uploadError.message : '알 수 없는 오류'
+      });
+    }
+
+    // 5. newsletters.json 파일 업데이트
+    const newslettersJsonPath = path.resolve(process.cwd(), 'public/newsletters/newsletters.json');
+    const metadata = {
       title: title,
       content: content,
       url: url || '',
       sentDate: sentDate,
-      htmlFilePath: publicPath,
+      htmlFilePath: storagePath,
+      publicUrl: previewUrl,
       recipients: recipients,
       filename: filename.replace('.html', '')
     };
-    newslettersArr.push(metadata);
     
-    // 메인 프로젝트 파일에 저장
-    await fs.writeFile(newslettersJsonPath, JSON.stringify(newslettersArr, null, 2), 'utf-8');
-    console.log(`[SUCCESS] newsletters.json updated`);
-    
-    // Firebase Functions 파일에도 저장 (동기화)
     try {
-      await fs.writeFile(functionsNewslettersJsonPath, JSON.stringify(newslettersArr, null, 2), 'utf-8');
-      console.log('[newsletters] Firebase Functions 파일도 업데이트됨');
-    } catch (functionsError) {
-      console.warn('[newsletters] Firebase Functions 파일 업데이트 실패:', functionsError);
+      // Firebase Functions 환경인지 확인
+      const isFirebaseFunctions = process.env.FIREBASE_CONFIG || process.env.FUNCTION_TARGET;
+
+      if (isFirebaseFunctions) {
+        // Firebase 서버에서는 Cloud Storage에 newsletters.json 업데이트
+        console.log('[NEWSLETTER-CREATE] Firebase Functions 환경에서 Cloud Storage 사용');
+        
+        try {
+          // Cloud Storage에서 기존 newsletters.json 읽기
+          const jsonFile = adminBucket.file('newsletters/newsletters.json');
+          console.log('[NEWSLETTER-CREATE] Cloud Storage 파일 객체 생성 완료');
+          
+          let newslettersArr = [];
+          
+          const [exists] = await jsonFile.exists();
+          console.log(`[NEWSLETTER-CREATE] 기존 newsletters.json 존재 여부: ${exists}`);
+          
+          if (exists) {
+            console.log('[NEWSLETTER-CREATE] 기존 파일 다운로드 시작...');
+            const [content] = await jsonFile.download();
+            const jsonContent = content.toString('utf-8');
+            newslettersArr = JSON.parse(jsonContent);
+            if (!Array.isArray(newslettersArr)) newslettersArr = [];
+            console.log(`[NEWSLETTER-CREATE] 기존 뉴스레터 ${newslettersArr.length}개 로드`);
+          } else {
+            console.log('[NEWSLETTER-CREATE] 기존 파일이 없어서 새로 생성');
+          }
+          
+          // 새 뉴스레터 추가
+          newslettersArr.push(metadata);
+          console.log(`[NEWSLETTER-CREATE] 새 뉴스레터 추가 완료. 총 ${newslettersArr.length}개`);
+          
+          // Cloud Storage에 저장
+          console.log('[NEWSLETTER-CREATE] Cloud Storage에 저장 시작...');
+          const jsonData = JSON.stringify(newslettersArr, null, 2);
+          console.log(`[NEWSLETTER-CREATE] 저장할 데이터 크기: ${jsonData.length} bytes`);
+          
+          await jsonFile.save(jsonData, {
+            metadata: {
+              contentType: 'application/json',
+            }
+          });
+          console.log(`[NEWSLETTER-CREATE] Cloud Storage newsletters.json 업데이트 완료`);
+        } catch (storageError) {
+          console.error('[NEWSLETTER-CREATE] Cloud Storage 업데이트 실패:', storageError);
+          console.error('[NEWSLETTER-CREATE] 에러 상세:', {
+            message: storageError instanceof Error ? storageError.message : 'Unknown error',
+            stack: storageError instanceof Error ? storageError.stack : undefined
+          });
+        }
+      } else {
+        // 로컬 환경에서는 로컬 파일 업데이트
+        console.log('[NEWSLETTER-CREATE] 로컬 환경에서 로컬 파일 사용');
+        
+        // 기존 newsletters.json 파일 읽기
+        let newslettersArr = [];
+        try {
+          const jsonContent = await fs.readFile(newslettersJsonPath, 'utf-8');
+          newslettersArr = JSON.parse(jsonContent);
+          if (!Array.isArray(newslettersArr)) newslettersArr = [];
+        } catch {
+          newslettersArr = [];
+        }
+        
+        // 새 뉴스레터 추가
+        newslettersArr.push(metadata);
+        
+        // 파일에 저장
+        await fs.writeFile(newslettersJsonPath, JSON.stringify(newslettersArr, null, 2), 'utf-8');
+        console.log(`[NEWSLETTER-CREATE] 로컬 newsletters.json 업데이트 완료`);
+      }
+    } catch (jsonError) {
+      console.error('[NEWSLETTER-CREATE] newsletters.json 업데이트 실패:', jsonError);
+      // JSON 업데이트 실패해도 파일은 업로드되었으므로 성공으로 처리
     }
 
     console.log('--- Newsletter Generation End ---\n');
@@ -244,7 +360,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         filename: filename.replace('.html', ''),
         title: title,
-        htmlUrl: publicPath
+        htmlUrl: url,
+        storagePath: storagePath
       }
     });
 
