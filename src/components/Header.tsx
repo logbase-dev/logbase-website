@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { SITE_TITLE } from '@/consts';
+// import { SITE_TITLE } from '@/consts';
 import { useState } from 'react';
 import InquiryForm from './InquiryForm';
 import NewsletterModal from './NewsletterModal';
@@ -16,7 +16,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMenuOpen(!isMenuOpen);
