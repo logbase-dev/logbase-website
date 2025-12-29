@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { SITE_TITLE } from '@/consts';
+// import { SITE_TITLE } from '@/consts';
 import { useState } from 'react';
 import InquiryForm from './InquiryForm';
 import NewsletterModal from './NewsletterModal';
@@ -16,7 +16,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -229,7 +229,8 @@ export default function Header() {
                       <Link className="nav-header-main__link" href="/rss-feed" data-clarity-tag="header-navigation-data-insights">DATA INSIGHTS</Link>
                     </li>
                     <li className="nav-header-main__item">
-                      <Link className="nav-header-main__link" href="/newsletter" data-clarity-tag="header-navigation-newsletter">NEWS LETTER</Link>
+                      {/* <Link className="nav-header-main__link" href="/newsletter" data-clarity-tag="header-navigation-newsletter">NEWS LETTER</Link> */}
+                      <p className="nav-header-main__link" data-clarity-tag="header-navigation-newsletter">NEWS LETTER</p>
                     </li>
                   </ul>
                 </nav>
