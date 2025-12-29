@@ -1,19 +1,21 @@
 const Parser = require('rss-parser');
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, addDoc, query, where, getDocs } = require('firebase/firestore');
+const admin = require('firebase-admin');
+require('dotenv').config({ path: '.env.local' });
 
-// Firebase 설정
-const firebaseConfig = {
-  apiKey: "AIzaSyBxGgOeJ83_iQhXvERtX34XtMR2eVLpVEo",
-  authDomain: "logbase-blog-83db6.firebaseapp.com",
-  projectId: "logbase-blog-83db6",
-  storageBucket: "logbase-blog-83db6.appspot.com",
-  messagingSenderId: "938632982963",
-  appId: "1:938632982963:web:2c8c8c8c8c8c8c8c8c8c8c8"
+// Firebase Admin SDK 초기화
+const serviceAccount = {
+  projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+  clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+  // .env 파일의 private_key에 포함된 \n을 실제 줄바꿈으로 변경
+  privateKey: (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+const db = admin.firestore();
 
 const parser = new Parser({
   customFields: {
@@ -24,6 +26,36 @@ const parser = new Parser({
     ]
   }
 });
+
+/**
+ * Maps an RSS item from the parser to the Firestore document structure.
+ * @param {object} item - The item from the RSS feed.
+ * @returns {object} The data object ready for Firestore.
+ */
+function mapItemToDocData(item) {
+  const description = item['content:encodedSnippet'] || item.contentSnippet || 
+                      (item['content:encoded'] ? item['content:encoded'].replace(/<[^>]*>/g, '').substring(0, 500) : '');
+
+  return {
+    // RSS fields
+    title: item.title || 'No Title',
+    link: item.link,
+    pubDate: item.pubDate,
+    guid: item.guid || item.link, // Use link as a fallback for guid
+    isoDate: item.isoDate,
+    description: description,
+
+    // Static fields
+    blogName: 'Indicative',
+    feedType: 'competitor',
+    matchedKeywords: [], // Use an empty array for consistency with other types
+
+    // Timestamps
+    collectedDate: new Date().toISOString().slice(0, 10).replace(/-/g, ''), // YYYYMMDD
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+}
 
 async function crawlIndicativeCorrect() {
   try {
@@ -68,7 +100,7 @@ async function crawlIndicativeCorrect() {
     
     // 2. 기존 Firestore 데이터 중복 체크
     console.log('\n2️⃣ 중복 체크...');
-    const rssCollection = collection(db, 'rss_items');
+    const rssCollection = db.collection('rss_items');
     const existingQuery = query(rssCollection, where('blogName', '==', 'Indicative'));
     const existingSnapshot = await getDocs(existingQuery);
     
@@ -97,33 +129,9 @@ async function crawlIndicativeCorrect() {
     
     for (const item of newItems) {
       try {
-        // 기존 Firestore 구조와 동일하게 맞춤
-        const docData = {
-          // RSS에서 가져온 필드들
-          title: item.title,
-          link: item.link,
-          pubDate: item.pubDate,
-          guid: item.guid || item.link, // guid가 없으면 link 사용
-          isoDate: item.isoDate,
-          
-          // 고정값들
-          blogName: 'Indicative',
-          feedType: 'competitor',
-          
-          // 설명 (content:encodedSnippet 또는 contentSnippet 사용)
-          description: item['content:encodedSnippet'] || item.contentSnippet || 
-                      (item['content:encoded'] ? item['content:encoded'].replace(/<[^>]*>/g, '').substring(0, 500) : ''),
-          
-          // 빈 객체들 (기존 구조와 동일)
-          matchedKeywords: {},
-          
-          // 날짜 필드들
-          collectedDate: new Date().toISOString().slice(0, 10).replace(/-/g, ''), // YYYYMMDD 형식
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
+        const docData = mapItemToDocData(item);
         
-        await addDoc(collection(db, 'rss_items'), docData);
+        await db.collection('rss_items').add(docData);
         savedCount++;
         console.log(`✅ 저장됨: ${item.title}`);
         
@@ -143,6 +151,10 @@ async function crawlIndicativeCorrect() {
 }
 
 crawlIndicativeCorrect().then(() => {
-  console.log('\n🎉 Indicative 크롤링 완료!');
-  process.exit(0);
-}); 
+  console.log('\n🎉 Indicative 크롤링 스크립트 실행 완료!');
+}).catch(error => {
+  console.error('💥 스크립트 실행 중 치명적인 오류 발생:', error);
+}).finally(() => {
+  // Firestore 연결을 정상적으로 종료
+  db.terminate().then(() => console.log('Firestore 연결이 종료되었습니다.'));
+});

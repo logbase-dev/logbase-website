@@ -199,7 +199,7 @@ export default function NewsletterEditPage() {
       <div className="container">
         <div className="error">{error}</div>
         <Link href="/newsletter">
-          <button type="button" className="btn-back">목록으로 돌아가기</button>
+          <button type="button" className="btn-back" data-clarity-tag="newsletter-edit-back-to-list">목록으로 돌아가기</button>
         </Link>
       </div>
     );
@@ -210,7 +210,7 @@ export default function NewsletterEditPage() {
       <div className="header">
         <h1>뉴스레터 편집</h1>
         <Link href="/newsletter">
-          <button type="button" className="btn-back">목록으로 돌아가기</button>
+          <button type="button" className="btn-back" data-clarity-tag="newsletter-edit-back-to-list">목록으로 돌아가기</button>
         </Link>
       </div>
 
@@ -225,6 +225,7 @@ export default function NewsletterEditPage() {
             onChange={handleChange}
             required
             placeholder="뉴스레터 제목을 입력하세요"
+            data-clarity-tag="newsletter-edit-title-input"
           />
         </div>
 
@@ -238,6 +239,7 @@ export default function NewsletterEditPage() {
             required
             rows={10}
             placeholder="뉴스레터 내용을 입력하세요"
+            data-clarity-tag="newsletter-edit-content-input"
           />
         </div>
 
@@ -250,6 +252,7 @@ export default function NewsletterEditPage() {
             value={formData.url}
             onChange={handleChange}
             placeholder="관련 URL을 입력하세요 (선택사항)"
+            data-clarity-tag="newsletter-edit-url-input"
           />
         </div>
 
@@ -262,6 +265,7 @@ export default function NewsletterEditPage() {
             value={formData.sentDate}
             onChange={handleChange}
             required
+            data-clarity-tag="newsletter-edit-sentdate-input"
           />
         </div>
 
@@ -274,6 +278,7 @@ export default function NewsletterEditPage() {
                 type="button" 
                 className="btn-select-recipients"
                 onClick={handleRecipientsModalOpen}
+                data-clarity-tag="newsletter-edit-select-recipients"
               >
                 수신자 선택
               </button>
@@ -298,6 +303,7 @@ export default function NewsletterEditPage() {
                         className="btn-remove-recipient"
                         onClick={() => handleRecipientSelect(recipient, false)}
                         title={`${recipient.name} 제거`}
+                        data-clarity-tag="newsletter-edit-remove-recipient"
                       >
                         ×
                       </button>
@@ -310,7 +316,7 @@ export default function NewsletterEditPage() {
         </div>
 
         <div className="form-actions">
-          <button type="submit" className="btn-submit" disabled={saving}>
+          <button type="submit" className="btn-submit" disabled={saving} data-clarity-tag="newsletter-edit-submit">
             {saving ? '저장 중...' : '뉴스레터 저장'}
           </button>
         </div>
@@ -356,6 +362,7 @@ export default function NewsletterEditPage() {
                 type="button" 
                 className="btn-close"
                 onClick={handleRecipientsModalClose}
+                data-clarity-tag="newsletter-edit-recipients-modal-close"
               >
                 ×
               </button>
@@ -381,6 +388,7 @@ export default function NewsletterEditPage() {
                       height: '16px',
                       margin: '0'
                     }}
+                    data-clarity-tag="newsletter-edit-select-all-recipients"
                   />
                   <span>전체 선택 ({recipients.length}명)</span>
                 </label>
@@ -441,6 +449,7 @@ export default function NewsletterEditPage() {
                             marginTop: '2px',
                             flexShrink: '0'
                           }}
+                          data-clarity-tag="newsletter-edit-recipient-checkbox"
                         />
                         <div style={{ flex: '1', minWidth: '0' }}>
                           <div style={{ marginBottom: '3px' }}>
@@ -470,6 +479,7 @@ export default function NewsletterEditPage() {
                 type="button" 
                 className="btn-confirm"
                 onClick={handleRecipientsConfirm}
+                data-clarity-tag="newsletter-edit-recipients-confirm"
               >
                 확인
               </button>

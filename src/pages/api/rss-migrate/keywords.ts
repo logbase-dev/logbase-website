@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, updateDoc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // CORS 헤더 설정
@@ -16,10 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'GET') {
     try {
-      const rssCollection = collection(db, 'rss_items');
-      const querySnapshot = await getDocs(rssCollection);
+      const rssCollection = adminDb.collection('rss_items');
+      const querySnapshot = await rssCollection.get();
       
-      const keywords = new Set<string>();
+      const keywords = new Set<string>(); 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.blogName) {
@@ -42,52 +41,98 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { guid, matchedKeywords } = req.body;
       
-      if (!guid || !Array.isArray(matchedKeywords)) {
-        console.error('❌ 잘못된 파라미터:', { guid, matchedKeywords });
-        return res.status(400).json({ success: false, error: 'Invalid parameters' });
+      // GUID 유효성 검사
+      if (!guid || typeof guid !== 'string' || !Array.isArray(matchedKeywords)) {
+        console.error('❌ 잘못된 파라미터:', { guid, matchedKeywords, guidType: typeof guid });
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Invalid parameters: guid must be a string and matchedKeywords must be an array' 
+        });
       }
 
-      console.log('🔧 Keywords API 호출:', { guid, matchedKeywords });
+      // GUID 정제
+      const trimmedGuid = guid.trim();
+      if (!trimmedGuid) {
+        console.error('❌ GUID가 빈 문자열입니다.');
+        return res.status(400).json({
+          success: false,
+          error: 'GUID cannot be empty'
+        });
+      }
+
+      // GUID 유효성 검사는 생략 (URL과 Firestore ID 모두 허용)
+      // Base64 인코딩을 통해 Firestore 호환 문서 ID 생성
+
+      console.log('🔧 Keywords API 호출:', { guid: trimmedGuid, matchedKeywords });
 
       // 타임아웃 설정 (25초)
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Database operation timeout')), 25000);
       });
 
-      const rssCollection = collection(db, 'rss_items');
-      const q = query(rssCollection, where('guid', '==', guid));
+      // 1. 인코딩된 GUID로 시도
+      const encodedGuid = Buffer.from(trimmedGuid).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      console.log(`🔍 인코딩된 GUID: ${encodedGuid}`);
       
-      // 쿼리 실행을 타임아웃과 함께
-      const querySnapshot = await Promise.race([
-        getDocs(q),
+      let docRef = adminDb.collection('rss_items').doc(encodedGuid);
+      let docSnapshot = await Promise.race([
+        docRef.get(),
         timeoutPromise
-      ]) as any;
+      ]) as FirebaseFirestore.DocumentSnapshot;
       
-      if (querySnapshot.empty) {
-        console.log('❌ RSS 아이템을 찾을 수 없음:', guid);
-        return res.status(404).json({ success: false, error: 'RSS item not found' });
+      // 2. 원본 GUID로 시도 (수동 작성 글) - URL 형태가 아닌 경우에만
+      if (!docSnapshot.exists && !trimmedGuid.includes('/')) {
+        console.log(`- 인코딩된 GUID(${encodedGuid})로 문서를 찾지 못했습니다. 원본 GUID로 재시도합니다.`);
+        docRef = adminDb.collection('rss_items').doc(trimmedGuid);
+        docSnapshot = await Promise.race([
+          docRef.get(),
+          timeoutPromise
+        ]) as FirebaseFirestore.DocumentSnapshot;
+      } else if (!docSnapshot.exists) {
+        console.log(`- 인코딩된 GUID(${encodedGuid})로 문서를 찾지 못했습니다. URL 형태 GUID는 직접 doc() 호출을 건너뜁니다.`);
       }
 
-      const doc = querySnapshot.docs[0];
+      // 3. guid 필드로 검색 (마지막 시도)
+      if (!docSnapshot.exists) {
+        console.log(`- 원본 GUID(${trimmedGuid})로도 문서를 찾지 못했습니다. guid 필드로 검색 시도...`);
+        const snapshot = await Promise.race([
+          adminDb.collection('rss_items').where('guid', '==', trimmedGuid).limit(1).get(),
+          timeoutPromise
+        ]) as FirebaseFirestore.QuerySnapshot;
+        
+        if (snapshot.empty) {
+          console.log('❌ RSS 아이템을 찾을 수 없음:', trimmedGuid);
+          return res.status(404).json({ 
+            success: false, 
+            error: 'RSS item not found' 
+          });
+        }
+        
+        // guid 필드로 찾은 문서 사용
+        const foundDoc = snapshot.docs[0];
+        docRef = foundDoc.ref;
+        console.log(`✅ guid 필드로 문서 발견: ${foundDoc.id}`);
+      }
       
       // 업데이트 실행을 타임아웃과 함께
       await Promise.race([
-        updateDoc(doc.ref, {
+        docRef.update({
           matchedKeywords: matchedKeywords,
           updatedAt: new Date()
         }),
         timeoutPromise
       ]);
 
-      console.log('✅ 키워드 업데이트 성공:', { guid, matchedKeywords });
+      console.log('✅ 키워드 업데이트 성공:', { docId: docRef.id, guid: trimmedGuid, matchedKeywords });
       res.status(200).json({ success: true, message: 'Keywords updated successfully' });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Keywords API 에러:', error);
-      if (error.message === 'Database operation timeout') {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage === 'Database operation timeout') {
         res.status(408).json({ success: false, error: 'Database operation timeout' });
       } else {
-        res.status(500).json({ success: false, error: 'Internal server error: ' + error.message });
+        res.status(500).json({ success: false, error: 'Internal server error: ' + errorMessage });
       }
     }
   } else {

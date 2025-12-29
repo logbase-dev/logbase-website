@@ -3,17 +3,30 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "functions": [
     {
       "source": "functions",
       "codebase": "default",
       "runtime": "nodejs20",
+      "memory": "512MB",
+      "timeoutSeconds": 300,
+      "maxInstances": 5,
+      "environmentVariables": {
+        "SLACK_MONITORING_WEBHOOK_URL": "https://hooks.slack.com/services/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",
+        "SLACK_INQUIRY_WEBHOOK_URL": "https://hooks.slack.com/services/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",
+        "SLACK_NEWSLETTER_WEBHOOK_URL": "https://hooks.slack.com/services/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"
+      },
       "ignore": [
         "node_modules",
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "*.local"
+        "*.local",
+        "src",
+        "test-*.js"
       ]
     }
   ],
@@ -27,12 +40,17 @@
     "rewrites": [
       {
         "source": "**",
-        "region": "asia-northeast3",
-        "function": "nextjsFunc"
+        "function": {
+          "functionId": "nextjsFunc",
+          "region": "asia-northeast3"
+        }
       }
     ]
   },
   "emulators": {
+    "auth": {
+      "port": 9099
+    },
     "functions": {
       "port": 5001
     },
@@ -42,6 +60,12 @@
     "ui": {
       "enabled": true
     },
-    "singleProjectMode": true
+    "singleProjectMode": true,
+    "firestore": {
+      "port": 8081
+    },
+    "storage": {
+      "port": 9199
+    }
   }
 }

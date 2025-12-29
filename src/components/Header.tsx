@@ -193,13 +193,13 @@ export default function Header() {
               <div className="header-main__overlay " data-search-target="overlay" data-action="click->search#close"></div>
               <div className="header-main__container">
 
-                <div className="header-main__hamburger" onClick={toggleMobileMenu}>
+                <div className="header-main__hamburger" onClick={toggleMobileMenu} data-clarity-tag="header-mobile-menu-toggle">
                   <svg className="ico-svg" viewBox="0 0 20 20" width="16">
                     <path d="M2 4h16M2 10h16M2 16h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
 
-                	<Link href="/" className="header-main__logo" aria-label="logbase">
+                	<Link href="/" className="header-main__logo" aria-label="logbase" data-clarity-tag="header-logo-click">
                   {/* 회사 로고 
                   <svg width="30" height="16" viewBox="0 0 30 16"><path d="m18.4 0-2.803 10.855L12.951 0H9.34L6.693 10.855 3.892 0H0l5.012 15.812h3.425l2.708-10.228 2.709 10.228h3.425L22.29 0h-3.892ZM24.77 13.365c0 1.506 1.12 2.635 2.615 2.635C28.879 16 30 14.87 30 13.365c0-1.506-1.12-2.636-2.615-2.636s-2.615 1.13-2.615 2.636Z"></path></svg>
                   회사 로고 */}
@@ -223,13 +223,14 @@ export default function Header() {
                 <nav className="nav-header-main" data-search-target="navHeaderMain">
                   <ul className="nav-header-main__list">
                     <li className="nav-header-main__item">
-                      <Link className="nav-header-main__link" href="/">HOME</Link>
+                      <Link className="nav-header-main__link" href="/" data-clarity-tag="header-navigation-home">HOME</Link>
                     </li>
                     <li className="nav-header-main__item">
-                      <Link className="nav-header-main__link" href="/rss-feed">DATA INSIGHTS</Link>
+                      <Link className="nav-header-main__link" href="/rss-feed" data-clarity-tag="header-navigation-data-insights">DATA INSIGHTS</Link>
                     </li>
                     <li className="nav-header-main__item">
-                      <Link className="nav-header-main__link" href="/newsletter">NEWS LETTER</Link>
+                      {/* <Link className="nav-header-main__link" href="/newsletter" data-clarity-tag="header-navigation-newsletter">NEWS LETTER</Link> */}
+                      <p className="nav-header-main__link" data-clarity-tag="header-navigation-newsletter">NEWS LETTER</p>
                     </li>
                   </ul>
                 </nav>
@@ -237,7 +238,7 @@ export default function Header() {
                 <div className="header-main__search">
                   <form onSubmit={handleSearch} className="search-form">
                     <div className="search-form__field">
-                      <button type="submit" className="search-form__button" aria-label="Search">
+                      <button type="submit" className="search-form__button" aria-label="Search" data-clarity-tag="header-search-submit">
                         <svg className="ico-svg" viewBox="0 0 20 20" width="14">
                           <use xlinkHref="/"></use>
                         </svg>
@@ -248,6 +249,7 @@ export default function Header() {
                         className="search-form__input" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        data-clarity-tag="header-search-input"
                       />
                     </div>
                   </form>
@@ -266,10 +268,10 @@ export default function Header() {
                       </>
                     ) : user ? (
                       <>
-                        <strong className="header-main__link hidden-sm" onClick={handleLogout}>
+                        <strong className="header-main__link hidden-sm" onClick={handleLogout} data-clarity-tag="header-user-logout-text">
                           Log out ({user.email})
                         </strong>
-                        <span className="header-main__ico" onClick={handleLogout}>
+                        <span className="header-main__ico" onClick={handleLogout} data-clarity-tag="header-user-logout-icon">
                           <svg className="ico-svg" viewBox="0 0 20 20" width="20">
                             <use xlinkHref="/"></use>
                           </svg>
@@ -277,8 +279,8 @@ export default function Header() {
                       </>
                     ) : (
                       <>
-                        <strong className="header-main__link hidden-sm" onClick={() => setShowLogin(true)}>Log in</strong>
-                        <span className="header-main__ico" onClick={() => setShowLogin(true)}>
+                        <strong className="header-main__link hidden-sm" onClick={() => setShowLogin(true)} data-clarity-tag="header-user-login-text">Log in</strong>
+                        <span className="header-main__ico" onClick={() => setShowLogin(true)} data-clarity-tag="header-user-login-icon">
                           <svg className="ico-svg" viewBox="0 0 20 20" width="20">
                             <use xlinkHref="/"></use>
                           </svg>
@@ -290,10 +292,10 @@ export default function Header() {
                   </div>
 
                   <div className="header-main__bts">
-                    <a href="#" className="button button--small--rounded" onClick={() => setShowNewsletter(true)}>뉴스레터 신청</a>
-                    <a href="#" className="button button--small--outline--rounded" onClick={() => setShowInquiry(true)}>문의하기</a>
+                    <a href="#" className="button button--small--rounded" onClick={() => setShowNewsletter(true)} data-clarity-tag="header-newsletter-signup-button">뉴스레터 신청</a>
+                    <a href="#" className="button button--small--outline--rounded" onClick={() => setShowInquiry(true)} data-clarity-tag="header-inquiry-button">문의하기</a>
                     {user && (
-                      <a href="#" className="button button--small--rounded" onClick={() => handleRssClick()}>RSS 수집</a>
+                      <a href="#" className="button button--small--rounded" onClick={() => handleRssClick()} data-clarity-tag="header-rss-collect-button">RSS 수집</a>
                     )}
                   </div>
                   
@@ -322,21 +324,21 @@ export default function Header() {
             <nav className="mobile-menu-nav">
               <ul className="mobile-menu-list">
                 <li className="mobile-menu-item">
-                  <Link href="/" className="mobile-menu-link">HOME</Link>
+                  <Link href="/" className="mobile-menu-link" data-clarity-tag="mobile-navigation-home">HOME</Link>
                 </li>
                 <li className="mobile-menu-item">
-                  <Link href="/rss-feed" className="mobile-menu-link">DATA INSIGHTS</Link>
+                  <Link href="/rss-feed" className="mobile-menu-link" data-clarity-tag="mobile-navigation-data-insights">DATA INSIGHTS</Link>
                 </li>
                 <li className="mobile-menu-item">
-                  <Link href="/newsletter" className="mobile-menu-link">NEWS LETTER</Link>
+                  <Link href="/newsletter" className="mobile-menu-link" data-clarity-tag="mobile-navigation-newsletter">NEWS LETTER</Link>
                 </li>
               </ul>
             </nav>
             <div className="mobile-menu-actions">
-              <button className="mobile-menu-button" onClick={() => { setShowNewsletter(true); toggleMobileMenu(); }}>
+              <button className="mobile-menu-button" onClick={() => { setShowNewsletter(true); toggleMobileMenu(); }} data-clarity-tag="mobile-newsletter-signup-button">
                 뉴스레터 신청
               </button>
-              <button className="mobile-menu-button" onClick={() => { setShowInquiry(true); toggleMobileMenu(); }}>
+              <button className="mobile-menu-button" onClick={() => { setShowInquiry(true); toggleMobileMenu(); }} data-clarity-tag="mobile-inquiry-button">
                 문의하기
               </button>
             </div>

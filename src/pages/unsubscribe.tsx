@@ -288,6 +288,7 @@ export default function UnsubscribePage() {
                   cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.6 : 1
                 }}
+                data-clarity-tag="unsubscribe-cancel-subscription"
               >
                 {loading ? '처리 중...' : '구독 취소하기'}
               </button>
@@ -308,6 +309,7 @@ export default function UnsubscribePage() {
                   cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.6 : 1
                 }}
+                data-clarity-tag="unsubscribe-resubscribe"
               >
                 {loading ? '처리 중...' : '다시 구독하기'}
               </button>
@@ -327,6 +329,7 @@ export default function UnsubscribePage() {
                 textDecoration: 'none',
                 textAlign: 'center'
               }}
+              data-clarity-tag="unsubscribe-back-to-home"
             >
               홈으로 돌아가기
             </a>

@@ -48,8 +48,7 @@ export default function LoginModal({ show, onClose }: LoginModalProps) {
         console.log('✅ 회원가입 성공 - AuthContext가 자동으로 업데이트됩니다.');
       } else {
         // 로그인
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+        await signInWithEmailAndPassword(auth, email, password);
         
         alert('로그인 성공!');
         console.log('✅ 로그인 성공 - AuthContext가 자동으로 업데이트됩니다.');
@@ -62,12 +61,16 @@ export default function LoginModal({ show, onClose }: LoginModalProps) {
       setDisplayName('');
       setIsRegisterMode(false);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('로그인/회원가입 오류:', error);
       
       let errorMessage = '로그인/회원가입에 실패했습니다.';
       
-      switch (error.code) {
+      // Firebase Auth 에러 타입 가드
+      if (error && typeof error === 'object' && 'code' in error) {
+        const firebaseError = error as { code: string; message?: string };
+        
+        switch (firebaseError.code) {
         case 'auth/user-not-found':
           errorMessage = '등록되지 않은 이메일입니다.';
           break;
@@ -93,7 +96,8 @@ export default function LoginModal({ show, onClose }: LoginModalProps) {
           errorMessage = 'Firebase Authentication이 설정되지 않았습니다. 관리자에게 문의하세요.';
           break;
         default:
-          errorMessage = `오류: ${error.message || error.code}`;
+          errorMessage = `오류: ${firebaseError.message || firebaseError.code}`;
+        }
       }
       
       setError(errorMessage);

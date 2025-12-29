@@ -147,7 +147,7 @@ export default function NewsletterWritePage() {
       <div className="header">
         <h1>뉴스레터 작성</h1>
         <Link href="/newsletter">
-          <button type="button" className="btn-back">목록으로 돌아가기</button>
+          <button type="button" className="btn-back" data-clarity-tag="newsletter-write-back-to-list">목록으로 돌아가기</button>
         </Link>
       </div>
 
@@ -162,6 +162,7 @@ export default function NewsletterWritePage() {
             onChange={handleChange}
             required
             placeholder="뉴스레터 제목을 입력하세요"
+            data-clarity-tag="newsletter-write-title-input"
           />
         </div>
 
@@ -175,6 +176,7 @@ export default function NewsletterWritePage() {
             required
             rows={10}
             placeholder="뉴스레터 내용을 입력하세요"
+            data-clarity-tag="newsletter-write-content-input"
           />
         </div>
 
@@ -187,6 +189,7 @@ export default function NewsletterWritePage() {
             value={formData.url}
             onChange={handleChange}
             placeholder="관련 URL을 입력하세요 (선택사항)"
+            data-clarity-tag="newsletter-write-url-input"
           />
         </div>
 
@@ -199,6 +202,7 @@ export default function NewsletterWritePage() {
             value={formData.sentDate}
             onChange={handleChange}
             required
+            data-clarity-tag="newsletter-write-sentdate-input"
           />
         </div>
 
@@ -211,6 +215,7 @@ export default function NewsletterWritePage() {
                 type="button" 
                 className="btn-select-recipients"
                 onClick={handleRecipientsModalOpen}
+                data-clarity-tag="newsletter-write-select-recipients"
               >
                 수신자 선택
               </button>
@@ -235,6 +240,7 @@ export default function NewsletterWritePage() {
                         className="btn-remove-recipient"
                         onClick={() => handleRecipientSelect(recipient, false)}
                         title={`${recipient.name} 제거`}
+                        data-clarity-tag="newsletter-write-remove-recipient"
                       >
                         ×
                       </button>
@@ -247,7 +253,7 @@ export default function NewsletterWritePage() {
         </div>
 
         <div className="form-actions">
-          <button type="submit" className="btn-submit" disabled={loading}>
+          <button type="submit" className="btn-submit" disabled={loading} data-clarity-tag="newsletter-write-submit">
             {loading ? '생성 중...' : '뉴스레터 생성'}
           </button>
         </div>
@@ -293,6 +299,7 @@ export default function NewsletterWritePage() {
                 type="button" 
                 className="btn-close"
                 onClick={handleRecipientsModalClose}
+                data-clarity-tag="newsletter-write-recipients-modal-close"
               >
                 ×
               </button>
@@ -318,6 +325,7 @@ export default function NewsletterWritePage() {
                       height: '16px',
                       margin: '0'
                     }}
+                    data-clarity-tag="newsletter-write-select-all-recipients"
                   />
                   <span>전체 선택 ({recipients.length}명)</span>
                 </label>
@@ -378,6 +386,7 @@ export default function NewsletterWritePage() {
                             marginTop: '2px',
                             flexShrink: '0'
                           }}
+                          data-clarity-tag="newsletter-write-recipient-checkbox"
                         />
                         <div style={{ flex: '1', minWidth: '0' }}>
                           <div style={{ marginBottom: '3px' }}>
@@ -407,6 +416,7 @@ export default function NewsletterWritePage() {
                 type="button" 
                 className="btn-confirm"
                 onClick={handleRecipientsConfirm}
+                data-clarity-tag="newsletter-write-recipients-confirm"
               >
                 확인
               </button>

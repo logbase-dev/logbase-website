@@ -1,208 +1,114 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+// src/pages/api/keywords.ts
+
+import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
+import { readJsonFromStorage, writeJsonToStorage } from '@/lib/storage';
 
-const keywordsFilePath = path.join(process.cwd(), 'public', 'keywords.json');
-const functionsKeywordsFilePath = path.join(process.cwd(), 'functions', 'public', 'keywords.json');
+// 환경 변수를 통해 프로덕션(배포) 환경인지 확인
+const isProduction = process.env.NODE_ENV === 'production';
+
+// 파일 경로 정의
+const localFilePath = path.join(process.cwd(), 'public', 'keywords.json');
+const storageFilePath = 'keywords/keywords.json';
+
+// --- 데이터 소스 추상화 함수 ---
+
+/**
+ * 환경에 따라 키워드 목록을 읽어옵니다.
+ */
+async function readKeywords(): Promise<string[]> {
+  if (isProduction) {
+    console.log('[API/keywords] Production: Reading from Firebase Storage.');
+    return readJsonFromStorage<string[]>(storageFilePath);
+  } else {
+    console.log('[API/keywords] Development: Reading from local filesystem.');
+    const fileData = await fs.readFile(localFilePath, 'utf-8');
+    return JSON.parse(fileData);
+  }
+}
+
+/**
+ * 환경에 따라 키워드 목록을 저장합니다.
+ */
+async function writeKeywords(data: string[]): Promise<void> {
+  if (isProduction) {
+    console.log('[API/keywords] Production: Writing to Firebase Storage.');
+    await writeJsonToStorage(storageFilePath, data);
+  } else {
+    console.log('[API/keywords] Development: Writing to local filesystem.');
+    const jsonString = JSON.stringify(data, null, 2);
+    await fs.writeFile(localFilePath, jsonString, 'utf-8');
+  }
+}
+
+// --- API 핸들러 ---
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  // OPTIONS 요청 처리
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
-  if (req.method === 'GET') {
-    try {
-      const keywordsData = await fs.readFile(keywordsFilePath, 'utf-8');
-      const keywords = JSON.parse(keywordsData);
-      
-      res.status(200).json({
-        success: true,
-        keywords: keywords
-      });
-    } catch (error) {
-      console.error('키워드 파일 읽기 오류:', error);
-      res.status(500).json({
-        success: false,
-        error: '키워드 파일을 읽을 수 없습니다.'
-      });
-    }
-  } else if (req.method === 'POST') {
-    try {
-      const { keyword } = req.body;
-      
-      if (!keyword || typeof keyword !== 'string' || keyword.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          error: '유효한 키워드를 입력해주세요.'
-        });
+  try {
+    switch (req.method) {
+      case 'GET': {
+        const keywords = await readKeywords();
+        return res.status(200).json({ success: true, keywords });
       }
 
-      const trimmedKeyword = keyword.trim();
-      
-      // 기존 키워드 목록 읽기
-      const keywordsData = await fs.readFile(keywordsFilePath, 'utf-8');
-      const keywords = JSON.parse(keywordsData);
-      
-      // 중복 확인
-      if (keywords.includes(trimmedKeyword)) {
-        return res.status(400).json({
-          success: false,
-          error: '이미 존재하는 키워드입니다.'
-        });
-      }
-      
-      // 새 키워드 추가
-      keywords.push(trimmedKeyword);
-      
-      // 메인 프로젝트 파일에 저장
-      await fs.writeFile(keywordsFilePath, JSON.stringify(keywords, null, 2), 'utf-8');
-      
-      // Firebase Functions 파일에도 저장 (동기화)
-      try {
-        await fs.writeFile(functionsKeywordsFilePath, JSON.stringify(keywords, null, 2), 'utf-8');
-        console.log('[keywords] Firebase Functions 파일도 업데이트됨');
-      } catch (functionsError) {
-        console.warn('[keywords] Firebase Functions 파일 업데이트 실패:', functionsError);
-      }
-      
-      res.status(200).json({
-        success: true,
-        message: '키워드가 추가되었습니다.',
-        keywords: keywords
-      });
-    } catch (error) {
-      console.error('키워드 추가 오류:', error);
-      res.status(500).json({
-        success: false,
-        error: '키워드 추가 중 오류가 발생했습니다.'
-      });
-    }
-  } else if (req.method === 'PUT') {
-    try {
-      const { oldKeyword, newKeyword } = req.body;
-      
-      if (!oldKeyword || !newKeyword || typeof oldKeyword !== 'string' || typeof newKeyword !== 'string') {
-        return res.status(400).json({
-          success: false,
-          error: '유효한 키워드를 입력해주세요.'
-        });
+      case 'POST': {
+        const { keyword } = req.body;
+        if (!keyword) {
+          return res.status(400).json({ success: false, error: '키워드는 필수입니다.' });
+        }
+        const keywords = await readKeywords();
+        if (keywords.includes(keyword)) {
+          return res.status(400).json({ success: false, error: '이미 존재하는 키워드입니다.' });
+        }
+        const newKeywords = [...keywords, keyword];
+        await writeKeywords(newKeywords);
+        return res.status(200).json({ success: true, message: '키워드가 추가되었습니다.', keywords: newKeywords });
       }
 
-      const trimmedNewKeyword = newKeyword.trim();
-      
-      if (trimmedNewKeyword === '') {
-        return res.status(400).json({
-          success: false,
-          error: '새 키워드는 비어있을 수 없습니다.'
-        });
+      case 'PUT': {
+        const { oldKeyword, newKeyword } = req.body;
+        if (!oldKeyword || !newKeyword) {
+          return res.status(400).json({ success: false, error: '이전 키워드와 새 키워드 모두 필요합니다.' });
+        }
+        let keywords = await readKeywords();
+        const index = keywords.indexOf(oldKeyword);
+        if (index === -1) {
+          return res.status(404).json({ success: false, error: '수정할 키워드를 찾을 수 없습니다.' });
+        }
+        keywords[index] = newKeyword;
+        await writeKeywords(keywords);
+        return res.status(200).json({ success: true, message: '키워드가 수정되었습니다.', keywords });
       }
-      
-      // 기존 키워드 목록 읽기
-      const keywordsData = await fs.readFile(keywordsFilePath, 'utf-8');
-      const keywords = JSON.parse(keywordsData);
-      
-      // 기존 키워드가 존재하는지 확인
-      const oldIndex = keywords.indexOf(oldKeyword);
-      if (oldIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          error: '수정할 키워드를 찾을 수 없습니다.'
-        });
+
+      case 'DELETE': {
+        const { keyword } = req.body;
+        if (!keyword) {
+          return res.status(400).json({ success: false, error: '삭제할 키워드가 필요합니다.' });
+        }
+        let keywords = await readKeywords();
+        const newKeywords = keywords.filter(k => k !== keyword);
+        if (keywords.length === newKeywords.length) {
+          return res.status(404).json({ success: false, error: '삭제할 키워드를 찾을 수 없습니다.' });
+        }
+        await writeKeywords(newKeywords);
+        return res.status(200).json({ success: true, message: '키워드가 삭제되었습니다.', keywords: newKeywords });
       }
-      
-      // 새 키워드가 이미 존재하는지 확인 (자기 자신 제외)
-      if (keywords.includes(trimmedNewKeyword) && oldKeyword !== trimmedNewKeyword) {
-        return res.status(400).json({
-          success: false,
-          error: '이미 존재하는 키워드입니다.'
-        });
-      }
-      
-      // 키워드 수정
-      keywords[oldIndex] = trimmedNewKeyword;
-      
-      // 메인 프로젝트 파일에 저장
-      await fs.writeFile(keywordsFilePath, JSON.stringify(keywords, null, 2), 'utf-8');
-      
-      // Firebase Functions 파일에도 저장 (동기화)
-      try {
-        await fs.writeFile(functionsKeywordsFilePath, JSON.stringify(keywords, null, 2), 'utf-8');
-        console.log('[keywords] Firebase Functions 파일도 업데이트됨');
-      } catch (functionsError) {
-        console.warn('[keywords] Firebase Functions 파일 업데이트 실패:', functionsError);
-      }
-      
-      res.status(200).json({
-        success: true,
-        message: '키워드가 수정되었습니다.',
-        keywords: keywords
-      });
-    } catch (error) {
-      console.error('키워드 수정 오류:', error);
-      res.status(500).json({
-        success: false,
-        error: '키워드 수정 중 오류가 발생했습니다.'
-      });
+
+      default:
+        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+        return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-  } else if (req.method === 'DELETE') {
-    try {
-      const { keyword } = req.body;
-      
-      if (!keyword || typeof keyword !== 'string') {
-        return res.status(400).json({
-          success: false,
-          error: '유효한 키워드를 입력해주세요.'
-        });
-      }
-      
-      // 기존 키워드 목록 읽기
-      const keywordsData = await fs.readFile(keywordsFilePath, 'utf-8');
-      const keywords = JSON.parse(keywordsData);
-      
-      // 키워드가 존재하는지 확인
-      const keywordIndex = keywords.indexOf(keyword);
-      if (keywordIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          error: '삭제할 키워드를 찾을 수 없습니다.'
-        });
-      }
-      
-      // 키워드 삭제
-      keywords.splice(keywordIndex, 1);
-      
-      // 메인 프로젝트 파일에 저장
-      await fs.writeFile(keywordsFilePath, JSON.stringify(keywords, null, 2), 'utf-8');
-      
-      // Firebase Functions 파일에도 저장 (동기화)
-      try {
-        await fs.writeFile(functionsKeywordsFilePath, JSON.stringify(keywords, null, 2), 'utf-8');
-        console.log('[keywords] Firebase Functions 파일도 업데이트됨');
-      } catch (functionsError) {
-        console.warn('[keywords] Firebase Functions 파일 업데이트 실패:', functionsError);
-      }
-      
-      res.status(200).json({
-        success: true,
-        message: '키워드가 삭제되었습니다.',
-        keywords: keywords
-      });
-    } catch (error) {
-      console.error('키워드 삭제 오류:', error);
-      res.status(500).json({
-        success: false,
-        error: '키워드 삭제 중 오류가 발생했습니다.'
-      });
-    }
-  } else {
-    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+  } catch (error: any) {
+    console.error(`[API/keywords] Error on ${req.method}:`, error);
+    return res.status(500).json({ success: false, error: error.message || '서버 오류가 발생했습니다.' });
   }
-} 
+}

@@ -43,6 +43,7 @@ export default function Footer() {
                               onMouseLeave={(e) => {
                                   e.currentTarget.style.color = 'white';
                               }}
+                              data-clarity-tag="footer-newsletter-signup-button"
                           >
                               뉴스레터 신청
                           </a>
@@ -67,6 +68,7 @@ export default function Footer() {
                                   e.currentTarget.style.color = '';
                                   e.currentTarget.style.borderColor = '';
                               }}
+                              data-clarity-tag="footer-inquiry-button"
                           >
                               문의하기
                           </a>
@@ -76,21 +78,21 @@ export default function Footer() {
               <div className="footer__bottom">
                   <div className="footer__left">
                       <ul className="footer__nav">
-                          <li><a rel="nofollow" href="https://www.awwwards.com/cookies-policy/">Cookies Policy</a></li>
-                          <li><a rel="nofollow" href="https://www.awwwards.com/terms/">Legal Terms</a></li>
-                          <li><a rel="nofollow" href="https://www.awwwards.com/privacy-policy/">Privacy Policy</a></li>
+                          {/* <li><a rel="nofollow" href="https://www.awwwards.com/cookies-policy/">Cookies Policy</a></li>
+                          <li><a rel="nofollow" href="https://www.awwwards.com/terms/">Legal Terms</a></li> */}
+                          <li><a rel="nofollow" href="/privacy" target="_blank" data-clarity-tag="footer-privacy-policy">Privacy Policy</a></li>
                       </ul>
                   </div>
                   <div className="footer__right">
                       <ul className="footer__nav">
                           <li><strong>Connect:</strong></li>
-                          <li><a href="https://www.instagram.com/awwwards">Instagram</a></li>
-                          <li><a href="https://www.linkedin.com/company/awwwards">LinkedIn</a></li>
-                          <li><a href="https://twitter.com/awwwards">Twitter</a></li>
+                          {/* <li><a href="https://www.instagram.com/awwwards">Instagram</a></li> */}
+                          <li><a href="https://www.linkedin.com/in/haesu-hwang-황해수-05a69636/" target="_blank" data-clarity-tag="footer-linkedin-profile">LinkedIn</a></li>
+                          {/* <li><a href="https://twitter.com/awwwards">Twitter</a></li>
                           <li><a href="https://www.facebook.com/awwwards">Facebook</a></li>
                           <li><a href="https://www.youtube.com/awwwardstv">YouTube</a></li>
                           <li><a href="https://www.tiktok.com/@awwwards.com">TikTok</a></li>
-                          <li><a href="https://www.pinterest.es/awwwards/">Pinterest</a></li>
+                          <li><a href="https://www.pinterest.es/awwwards/">Pinterest</a></li> */}
                       </ul>
                   </div>
               </div>

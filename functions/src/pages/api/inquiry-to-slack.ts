@@ -20,8 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ success: false, error: 'Missing required fields' });
       }
 
-      // Slack webhook URL - 하드코딩으로 통일
-      const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+      // Slack Webhook URL - 환경 변수 우선, 없으면 하드코딩 fallback
+      const SLACK_WEBHOOK_URL = process.env.SLACK_INQUIRY_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
       
 
       const slackMessage: any = {

@@ -1,9 +1,24 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import Parser from 'rss-parser';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import path from 'path';
 import fs from 'fs/promises';
+import { readJsonFromStorage } from '@/lib/storage';
+
+// RSS 아이템 타입 정의
+interface RSSItem {
+  title: string;
+  link: string;
+  pubDate: string;
+  content?: string;
+  summary?: string;
+  description?: string;
+  blogName: string;
+  feedType: 'competitor' | 'noncompetitor';
+  matchedKeywords?: string[];
+  [key: string]: unknown; // rss-parser의 추가 필드들
+}
 
 // RSS 파싱을 위한 rss-parser 인스턴스 생성
 const parser = new Parser({
@@ -18,11 +33,21 @@ const parser = new Parser({
 
 // RSS 피드 목록을 JSON 파일에서 로드
 let FEEDS: { name: string; url: string; type: 'competitor' | 'noncompetitor'; status: 'active' | 'error' }[] = [];
+const isProduction = process.env.NODE_ENV === 'production';
+const feedsStoragePath = 'feeds/feeds.json';
+const feedsLocalPath = path.resolve(process.cwd(), 'public/feeds.json');
+
 try {
-  const feedsPath = path.resolve(process.cwd(), 'public/feeds.json');
-  const feedsContent = await fs.readFile(feedsPath, 'utf-8');
-  FEEDS = JSON.parse(feedsContent);
-  console.log('[rss-collect] public/feeds.json에서 피드 로드:', FEEDS.length, '개');
+  if (isProduction) {
+    console.log('[rss-collect] Production: Reading feeds from Firebase Storage.');
+    FEEDS = await readJsonFromStorage<{ name: string; url: string; type: 'competitor' | 'noncompetitor'; status: 'active' | 'error' }[]>(feedsStoragePath);
+    console.log('[rss-collect] Firebase Storage에서 피드 로드:', FEEDS.length, '개');
+  } else {
+    console.log('[rss-collect] Development: Reading feeds from local filesystem.');
+    const feedsContent = await fs.readFile(feedsLocalPath, 'utf-8');
+    FEEDS = JSON.parse(feedsContent);
+    console.log('[rss-collect] 로컬 파일에서 피드 로드:', FEEDS.length, '개');
+  }
 } catch (e) {
   console.log('[rss-collect] 피드 로드 오류:', e);
   // 기본 피드 목록 (fallback)
@@ -54,13 +79,22 @@ try {
 
 // 필터링에 사용할 키워드 목록
 let KEYWORDS: string[] = [];
+const keywordsStoragePath = 'keywords/keywords.json';
+const keywordsLocalPath = path.resolve(process.cwd(), 'public/keywords.json');
+
 try {
-  const keywordsPath = path.resolve(process.cwd(), 'public/keywords.json');
-  const keywordsContent = await fs.readFile(keywordsPath, 'utf-8');
-  KEYWORDS = JSON.parse(keywordsContent);
-  console.log('[rss-collect] public/keywords.json에서 키워드 로드:', KEYWORDS.length, '개');
+  if (isProduction) {
+    console.log('[rss-collect] Production: Reading keywords from Firebase Storage.');
+    KEYWORDS = await readJsonFromStorage<string[]>(keywordsStoragePath);
+    console.log('[rss-collect] Firebase Storage에서 키워드 로드:', KEYWORDS.length, '개');
+  } else {
+    console.log('[rss-collect] Development: Reading keywords from local filesystem.');
+    const keywordsContent = await fs.readFile(keywordsLocalPath, 'utf-8');
+    KEYWORDS = JSON.parse(keywordsContent);
+    console.log('[rss-collect] 로컬 파일에서 키워드 로드:', KEYWORDS.length, '개');
+  }
 } catch (e) {
-  console.log('[rss-collect] 키워드 로드 오류:', e);
+  console.error('[rss-collect] 키워드 로드 오류:', e);
   KEYWORDS = [
     'behavioral data',
     'event log',
@@ -89,7 +123,6 @@ try {
     'data reliability',
     'A/B test',
     'data metric',
-    'Analytics',
     'product analytics',
     'Machine learning in Analytics',
     'LLM in analytics',
@@ -106,7 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const startTime = new Date();
   console.log(`🚀 RSS 피드 수집 시작: ${startTime.toLocaleString('ko-KR')}`);
   
-  let allItems: any[] = [];
+  const allItems: RSSItem[] = [];
   let successCount = 0;
   let errorCount = 0;
   
@@ -133,12 +166,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const parsed = await parser.parseString(xml);
       
       // 각 글에 blogName(블로그명)과 type(경쟁사/비경쟁사) 추가
-      parsed.items.forEach((item: any) => {
-        (item as any).blogName = feed.name;
-        (item as any).feedType = feed.type;
+      parsed.items.forEach((item) => {
+        if (item.title && item.link && item.pubDate) {
+          const rssItem: RSSItem = {
+            ...item, // 기타 rss-parser 필드들
+            title: item.title,
+            link: item.link,
+            pubDate: item.pubDate,
+            blogName: feed.name,
+            feedType: feed.type,
+          };
+          allItems.push(rssItem);
+        }
       });
-      // 전체 글 목록에 추가
-      allItems = allItems.concat(parsed.items);
       successCount++;
       console.log(`✅ RSS 파싱 성공: ${feed.name} (${parsed.items.length}개 글, ${feed.type})`);
     } catch (e) {
@@ -152,33 +192,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // 경쟁사/비경쟁사별로 다른 필터링 적용
-  const competitorItems = allItems.filter((item: any) => (item as any).feedType === 'competitor');
-  const nonCompetitorItems = allItems.filter((item: any) => (item as any).feedType === 'noncompetitor');
+  const competitorItems = allItems.filter((item: RSSItem) => item.feedType === 'competitor');
+  const nonCompetitorItems = allItems.filter((item: RSSItem) => item.feedType === 'noncompetitor');
   
   // 경쟁사: 키워드 매칭만 추출 (수집은 날짜 필터링 후에 결정)
-  competitorItems.forEach((item: any) => {
+  competitorItems.forEach((item: RSSItem) => {
     const text = (item.title + ' ' + (item.content || '') + ' ' + (item.summary || '')).toLowerCase();
     const matchedKeywords = KEYWORDS.filter(keyword => text.includes(keyword.toLowerCase()));
-    (item as any).matchedKeywords = matchedKeywords;
+    item.matchedKeywords = matchedKeywords;
   });
   
   // 비경쟁사: 키워드 필터링 적용 및 매칭 키워드 추출
   const filteredNonCompetitor = nonCompetitorItems
-    .map((item: any) => {
+    .map((item: RSSItem) => {
       const text = (item.title + ' ' + (item.content || '') + ' ' + (item.summary || '')).toLowerCase();
       const matchedKeywords = KEYWORDS.filter(keyword => text.includes(keyword.toLowerCase()));
-      (item as any).matchedKeywords = matchedKeywords;
+      item.matchedKeywords = matchedKeywords;
       return item;
     })
-    .filter((item: any) => (item as any).matchedKeywords.length > 0);
+    .filter((item: RSSItem) => item.matchedKeywords && item.matchedKeywords.length > 0);
   
   // 경쟁사 + 비경쟁사(키워드 필터링된 것) 합치기
   const filtered = [...competitorItems, ...filteredNonCompetitor];
 
   // === 날짜 필터링 기준 설정 ===
   const now = new Date();
-  // 오늘 00:00:00 (초기 수집 시 오늘 제외용)
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
   // 어제 00:00:00
   const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
   // 어제 23:59:59.999
@@ -188,7 +226,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const rssCollection = collection(db, 'rss_items');
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD 형식
   let todayDocsCount = 0;
-  let existingTitles: Set<string> = new Set(); // 중복 체크용 Set
+  const existingTitles: Set<string> = new Set(); // 중복 체크용 Set
   
   try {
     const todayQuery = query(
@@ -211,16 +249,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('[rss-collect] 오늘 데이터 조회 오류:', e);
   }
   
-  const hasTodayData = todayDocsCount > 0;
-
   // 항상 어제 날짜만 필터링 (경쟁사/비경쟁사 모두)
-  let result: any[] = filtered
-    .filter((item: any) => {
+  const result: RSSItem[] = filtered
+    .filter((item: RSSItem) => {
       if (!item.pubDate) return false;
       const pubDate = new Date(item.pubDate);
       return pubDate >= yesterdayStart && pubDate <= yesterdayEnd;
     })
-    .sort((a: any, b: any) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+    .sort((a: RSSItem, b: RSSItem) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
 
   console.log(`📊 전체 ${allItems.length}개 글 중 경쟁사 ${competitorItems.length}개, 비경쟁사 키워드 필터링 후 ${filteredNonCompetitor.length}개, 총 ${filtered.length}개, 어제 날짜 필터링 후 ${result.length}개`);
 

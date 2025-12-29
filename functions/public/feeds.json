@@ -14,7 +14,7 @@
   {
     "name": "openai",
     "url": "https://openai.com/blog/rss.xml",
-    "type": "competitor",
+    "type": "noncompetitor",
     "status": "active"
   },
   {
@@ -32,7 +32,7 @@
   {
     "name": "databricks",
     "url": "https://www.databricks.com/rss.xml",
-    "type": "competitor",
+    "type": "noncompetitor",
     "status": "active"
   },
   {
@@ -125,4 +125,4 @@
     "type": "noncompetitor",
     "status": "active"
   }
-] 
+]

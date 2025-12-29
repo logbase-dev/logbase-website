@@ -2,12 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { RSSItem } from '@/types/rss';
 import { SITE_TITLE } from '@/consts';
 import { useAuth } from '@/contexts/AuthContext';
 
+// RSS Feed 타입 정의
+interface RSSFeed {
+  name: string;
+  url: string;
+  type: 'competitor' | 'noncompetitor';
+  status: 'active' | 'error';
+}
+
 export default function RSSFeedPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [rssItems, setRssItems] = useState<RSSItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +32,7 @@ export default function RSSFeedPage() {
   const [updatingKeyword, setUpdatingKeyword] = useState<{ [key: string]: boolean }>({});
   const [deletingItem, setDeletingItem] = useState<{ [key: string]: boolean }>({});
   const [blogSearch, setBlogSearch] = useState('');
-  const [feedType, setFeedType] = useState('all');
+  const [feedType, setFeedType] = useState('all');  
   const [searchTrigger, setSearchTrigger] = useState(0);
   // 뉴스레터 발송일 상태 관리
   const [newsletterDates, setNewsletterDates] = useState<{ [key: string]: string }>({});
@@ -42,12 +52,12 @@ export default function RSSFeedPage() {
   const [keywordSuccess, setKeywordSuccess] = useState<string | null>(null);
 
   // RSS 피드 관리 상태
-  const [feeds, setFeeds] = useState<any[]>([]);
+  const [feeds, setFeeds] = useState<RSSFeed[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
   const [showFeedManager, setShowFeedManager] = useState(false);
-  const [newFeed, setNewFeed] = useState({ name: '', url: '', type: 'noncompetitor', status: 'active' });
-  const [editingFeed, setEditingFeed] = useState<any | null>(null);
-  const [editFeedValue, setEditFeedValue] = useState({ name: '', url: '', type: 'noncompetitor', status: 'active' });
+  const [newFeed, setNewFeed] = useState<RSSFeed>({ name: '', url: '', type: 'noncompetitor', status: 'active' });
+  const [editingFeed, setEditingFeed] = useState<RSSFeed | null>(null);
+  const [editFeedValue, setEditFeedValue] = useState<RSSFeed>({ name: '', url: '', type: 'noncompetitor', status: 'active' });
   const [feedError, setFeedError] = useState<string | null>(null);
   const [feedSuccess, setFeedSuccess] = useState<string | null>(null);
 
@@ -57,6 +67,14 @@ export default function RSSFeedPage() {
   // filteredCount를 상태로 관리
   const [filteredCount, setFilteredCount] = useState<number | undefined>(undefined);
   const [totalPages, setTotalPages] = useState(0);
+
+  // 환경에 따른 API 엔드포인트 선택
+  const getApiEndpoint = () => {
+    const isLocalEmulator = process.env.NODE_ENV === 'development' && 
+                           process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST;
+    
+    return isLocalEmulator ? '/api/rss-migrate-local' : '/api/rss-migrate';
+  };
 
   // RSS 데이터 로드 - 간단한 페이지네이션
   const loadRSSData = async (blogName?: string, page = 1, pageSize = 12, feedTypeParam?: string, searchTextParam?: string) => {
@@ -85,8 +103,9 @@ export default function RSSFeedPage() {
         params.append('searchText', searchTextParam);
       }
       
-      const url = `/api/rss-migrate?${params}`;
-      console.log('📡 API 요청 URL:', url);
+      const apiEndpoint = getApiEndpoint();
+      const url = `${apiEndpoint}?${params}`;
+      console.log('📡 API 요청 URL:', url, '(환경:', process.env.NODE_ENV, ')');
       
       const response = await fetch(url);
       console.log('📡 API 응답 상태:', response.status, response.statusText);
@@ -227,12 +246,13 @@ export default function RSSFeedPage() {
         console.error('❌ 키워드 저장 실패:', result.error);
         alert('키워드 저장 실패: ' + result.error);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ 키워드 저장 중 오류:', err);
-      if (err.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         alert('키워드 저장 시간 초과 (30초). 다시 시도해주세요.');
       } else {
-        alert('키워드 저장 중 오류 발생: ' + (err.message || '알 수 없는 오류'));
+        const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
+        alert('키워드 저장 중 오류 발생: ' + errorMessage);
       }
     } finally {
       setUpdatingKeyword(prev => ({ ...prev, [guid]: false }));
@@ -286,12 +306,13 @@ export default function RSSFeedPage() {
         console.error('❌ 키워드 삭제 실패:', result.error);
         alert('키워드 삭제 실패: ' + result.error);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ 키워드 삭제 중 오류:', err);
-      if (err.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         alert('키워드 삭제 시간 초과 (30초). 다시 시도해주세요.');
       } else {
-        alert('키워드 삭제 중 오류 발생: ' + (err.message || '알 수 없는 오류'));
+        const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
+        alert('키워드 삭제 중 오류 발생: ' + errorMessage);
       }
     } finally {
       setUpdatingKeyword(prev => ({ ...prev, [guid]: false }));
@@ -301,14 +322,28 @@ export default function RSSFeedPage() {
   // Firestore에서 글(문서) 삭제
   const handleDeleteItem = async (guid: string) => {
     if (!window.confirm('이 글을 삭제하시겠습니까?')) return;
+    
+    // GUID 유효성 검사
+    if (!guid || typeof guid !== 'string' || !guid.trim()) {
+      alert('유효하지 않은 글 ID입니다.');
+      return;
+    }
+    
     setDeletingItem(prev => ({ ...prev, [guid]: true }));
     try {
+      console.log('🗑️ 글 삭제 요청:', { guid });
+      
       const res = await fetch(`/api/rss-migrate/delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guid })
+        body: JSON.stringify({ guid: guid.trim() })
       });
+      
+      console.log('📡 삭제 응답 상태:', res.status, res.statusText);
+      
       const result = await res.json();
+      console.log('📡 삭제 응답 데이터:', result);
+      
       if (result.success) {
         setRssItems(prev => prev.filter(item => item.guid !== guid));
         setLocalKeywords(prev => {
@@ -316,11 +351,15 @@ export default function RSSFeedPage() {
           delete copy[guid];
           return copy;
         });
+        alert('글이 삭제되었습니다.');
       } else {
-        alert('글 삭제 실패: ' + result.error);
+        console.error('❌ 글 삭제 실패:', result);
+        alert('글 삭제 실패: ' + (result.message || result.error || '알 수 없는 오류'));
       }
     } catch (err) {
-      alert('글 삭제 중 오류 발생');
+      console.error('❌ 글 삭제 중 오류:', err);
+      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
+      alert('글 삭제 중 오류 발생: ' + errorMessage);
     } finally {
       setDeletingItem(prev => ({ ...prev, [guid]: false }));
     }
@@ -584,12 +623,17 @@ export default function RSSFeedPage() {
     }
   };
 
-  const startEditFeed = (feed: any) => {
+  const startEditFeed = (feed: RSSFeed) => {
     setEditingFeed(feed);
     setEditFeedValue({ ...feed });
   };
 
   const handleEditFeed = async () => {
+    if (!editingFeed) {
+      setFeedError('수정할 피드가 선택되지 않았습니다.');
+      return;
+    }
+
     if (!editFeedValue.name.trim() || !editFeedValue.url.trim()) {
       setFeedError('피드 이름과 URL을 입력해주세요.');
       return;
@@ -628,7 +672,7 @@ export default function RSSFeedPage() {
     }
   };
 
-  const handleDeleteFeedFromManager = async (feed: any) => {
+  const handleDeleteFeedFromManager = async (feed: RSSFeed) => {
     if (!window.confirm(`RSS 피드 "${feed.name}"을(를) 삭제하시겠습니까?`)) {
       return;
     }
@@ -676,7 +720,7 @@ export default function RSSFeedPage() {
   return (
     <>
       <Head>
-        <title>{`RSS 피드 - ${SITE_TITLE}`}</title>
+        <title>{`DATA INSIGHTS - ${SITE_TITLE}`}</title>
         <meta name="description" content="RSS 피드 관리 및 뉴스레터 서비스" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.svg" />
@@ -684,7 +728,7 @@ export default function RSSFeedPage() {
       
       <div className="rss-feed-container">
         <div className="rss-header">
-          <h1>RSS Feed Collection</h1>
+          <h1>DATA INSIGHTS</h1>
           <div className="rss-controls" style={{ justifyContent: 'center' }}>
             {/* 블로그 검색 input */}
             <input
@@ -712,6 +756,7 @@ export default function RSSFeedPage() {
               type="button"
               onClick={handleSearch}
               className="migrate-btn"
+              data-clarity-tag="rss-feed-search-button"
             >
               검색
             </button>
@@ -728,6 +773,7 @@ export default function RSSFeedPage() {
                   background: '#ef4444',
                   marginLeft: '8px'
                 }}
+                data-clarity-tag="rss-feed-search-reset-button"
               >
                 초기화
               </button>
@@ -742,6 +788,7 @@ export default function RSSFeedPage() {
                 onClick={() => setShowKeywordManager(!showKeywordManager)}
                 className="migrate-btn"
                 style={{ background: showKeywordManager ? '#ef4444' : '#10b981' }}
+                data-clarity-tag="rss-feed-keyword-manager-toggle"
               >
                 {showKeywordManager ? 'RSS 수집 키워드 관리 닫기' : 'RSS 수집 키워드 관리'}
               </button>
@@ -752,6 +799,7 @@ export default function RSSFeedPage() {
                 onClick={() => setShowFeedManager(!showFeedManager)}
                 className="migrate-btn"
                 style={{ background: showFeedManager ? '#ef4444' : '#3b82f6' }}
+                data-clarity-tag="rss-feed-feed-manager-toggle"
               >
                 {showFeedManager ? 'RSS FEED URL 관리 닫기' : 'RSS FEED URL 관리'}
               </button>
@@ -767,6 +815,7 @@ export default function RSSFeedPage() {
               <button
                 onClick={() => setShowKeywordManager(false)}
                 className="close-btn"
+                data-clarity-tag="rss-feed-keyword-manager-close"
               >
                 ×
               </button>
@@ -806,6 +855,7 @@ export default function RSSFeedPage() {
                   onClick={handleAddKeywordToManager}
                   disabled={keywordLoading || !newKeyword.trim()}
                   className="add-btn"
+                  data-clarity-tag="rss-feed-keyword-add-button"
                 >
                   {keywordLoading ? '추가 중...' : '추가'}
                 </button>
@@ -865,6 +915,7 @@ export default function RSSFeedPage() {
                               onClick={() => startEdit(keyword)}
                               disabled={keywordLoading}
                               className="edit-btn"
+                              data-clarity-tag="rss-feed-keyword-edit-button"
                             >
                               수정
                             </button>
@@ -872,6 +923,7 @@ export default function RSSFeedPage() {
                               onClick={() => handleDeleteKeywordFromManager(keyword)}
                               disabled={keywordLoading}
                               className="delete-btn"
+                              data-clarity-tag="rss-feed-keyword-delete-button"
                             >
                               삭제
                             </button>
@@ -894,6 +946,7 @@ export default function RSSFeedPage() {
               <button
                 onClick={() => setShowFeedManager(false)}
                 className="close-btn"
+                data-clarity-tag="rss-feed-feed-manager-close"
               >
                 ×
               </button>
@@ -936,7 +989,7 @@ export default function RSSFeedPage() {
                 <div className="feed-input-row">
                   <select
                     value={newFeed.type}
-                    onChange={(e) => setNewFeed({ ...newFeed, type: e.target.value })}
+                    onChange={(e) => setNewFeed({ ...newFeed, type: e.target.value as 'competitor' | 'noncompetitor' })}
                     disabled={feedLoading}
                   >
                     <option value="competitor">경쟁사</option>
@@ -944,7 +997,7 @@ export default function RSSFeedPage() {
                   </select>
                   <select
                     value={newFeed.status}
-                    onChange={(e) => setNewFeed({ ...newFeed, status: e.target.value })}
+                    onChange={(e) => setNewFeed({ ...newFeed, status: e.target.value as 'active' | 'error' })}
                     disabled={feedLoading}
                   >
                     <option value="active">활성</option>
@@ -954,6 +1007,7 @@ export default function RSSFeedPage() {
                     onClick={handleAddFeedToManager}
                     disabled={feedLoading || !newFeed.name.trim() || !newFeed.url.trim()}
                     className="add-btn"
+                    data-clarity-tag="rss-feed-feed-add-button"
                   >
                     {feedLoading ? '추가 중...' : '추가'}
                   </button>
@@ -989,14 +1043,14 @@ export default function RSSFeedPage() {
                           <div className="feed-edit-row">
                             <select
                               value={editFeedValue.type}
-                              onChange={(e) => setEditFeedValue({ ...editFeedValue, type: e.target.value })}
+                              onChange={(e) => setEditFeedValue({ ...editFeedValue, type: e.target.value as 'competitor' | 'noncompetitor' })}
                             >
                               <option value="competitor">경쟁사</option>
                               <option value="noncompetitor">비경쟁사</option>
                             </select>
                             <select
                               value={editFeedValue.status}
-                              onChange={(e) => setEditFeedValue({ ...editFeedValue, status: e.target.value })}
+                              onChange={(e) => setEditFeedValue({ ...editFeedValue, status: e.target.value as 'active' | 'error' })}
                             >
                               <option value="active">활성</option>
                               <option value="error">에러</option>
@@ -1039,6 +1093,7 @@ export default function RSSFeedPage() {
                               onClick={() => startEditFeed(feed)}
                               disabled={feedLoading}
                               className="edit-btn"
+                              data-clarity-tag="rss-feed-feed-edit-button"
                             >
                               수정
                             </button>
@@ -1046,6 +1101,7 @@ export default function RSSFeedPage() {
                               onClick={() => handleDeleteFeedFromManager(feed)}
                               disabled={feedLoading}
                               className="delete-btn"
+                              data-clarity-tag="rss-feed-feed-delete-button"
                             >
                               삭제
                             </button>
@@ -1098,7 +1154,7 @@ export default function RSSFeedPage() {
                   fontSize: '13px',
                   color: '#0369a1'
                 }}>
-                  🔍 검색어: <strong>"{blogSearch}"</strong>
+                  🔍 검색어: <strong>&quot;{blogSearch}&quot;</strong>
                   <button 
                     onClick={() => {
                       setBlogSearch('');
@@ -1123,6 +1179,7 @@ export default function RSSFeedPage() {
                 value={pageSize}
                 onChange={e => handlePageSizeChange(Number(e.target.value))}
                 className="page-size-select"
+                data-clarity-tag="rss-feed-page-size-select"
               >
                 <option value={12}>12개씩 보기</option>
                 <option value={24}>24개씩 보기</option>
@@ -1145,9 +1202,33 @@ export default function RSSFeedPage() {
                   marginLeft: '12px',
                   fontWeight: '500'
                 }}
+                data-clarity-tag="rss-feed-view-mode-toggle"
               >
                 {viewMode === 'card' ? '📋 목록으로 보기' : '🃏 카드로 보기'}
               </button>
+              {/* 글작성 버튼 - 로그인한 사용자만 표시 */}
+              {user && (
+                <button
+                  type="button"
+                  onClick={() => router.push('/blog/write')}
+                  className="write-article-button"
+                  style={{
+                    background: '#10b981',
+                    border: '1px solid #059669',
+                    borderRadius: '6px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    marginLeft: '12px',
+                    fontWeight: '500',
+                    color: 'white'
+                  }}
+                  data-clarity-tag="rss-feed-write-article"
+                >
+                  ✍️ 글작성
+                </button>
+              )}
+
             </div>
 
             {user && (
@@ -1171,32 +1252,49 @@ export default function RSSFeedPage() {
                 const safeKeywords = Array.isArray(keywords) ? keywords : [];
                 // 순번 계산: 전체 개수 - (현재 페이지-1) * 페이지 크기 - 현재 인덱스
                 const itemNumber = (filteredCount || totalCount) - ((currentPage - 1) * pageSize) - index;
+                const isLogbaseArticle = item.blogName === 'Logbase';
+                const articleUrl = isLogbaseArticle ? `/blog/${item.guid}` : item.link;
+
                 return (
                   <article key={`${item.guid}-${index}`} className={`rss-item ${viewMode === 'card' ? 'rss-item-card' : 'rss-item-list'}`}>
                     <div className="rss-meta">
                       <span className="item-number">#{itemNumber}</span>
                       <span className="blog-name">{item.blogName}</span>
-                      <span className="feed-type">{item.feedType}</span>
+                      <span className={`feed-type ${item.feedType}`}>
+                        {item.feedType === 'competitor' ? 'competitor' : item.feedType === 'noncompetitor' ? 'noncompetitor' : 'Logbase'}
+                      </span>
                       <span className="date">
                         {item.author ? `${item.author} / ` : ''}{formatDate(item.isoDate)}
                       </span>
                     </div>
                     
                     <h3 className="rss-title">
-                      <a href={item.link} target="_blank" rel="noopener noreferrer">
+                      <a href={articleUrl} target={isLogbaseArticle ? '_self' : '_blank'} rel="noopener noreferrer" data-clarity-tag="rss-feed-article-link">
                         {item.title}
                       </a>
                     </h3>
                     
                     <p className="rss-description">
-                      {item.description ? (
-                        <>
-                          {item.description.replace(/<[^>]*>/g, '').slice(0, 200)}
-                          {item.description.replace(/<[^>]*>/g, '').length > 200 && '...'}
-                        </>
-                      ) : (
-                        '설명이 없습니다.'
-                      )}
+                      {/* Logbase 글은 상세 페이지로 이동하므로 설명 부분의 링크는 제거할 수 있습니다. 
+                          하지만 일관성을 위해 남겨두고, 클릭 시 동일하게 동작하도록 합니다. */}
+                      <a href={articleUrl} target={isLogbaseArticle ? '_self' : '_blank'} rel="noopener noreferrer" data-clarity-tag="rss-feed-article-link-desc">
+                        {item.description ? (
+                          <>
+                            {(() => {
+                              // Base64 이미지 데이터 제거 및 텍스트 정리
+                              const cleanDescription = item.description
+                                .replace(/<[^>]*>/g, '') // HTML 태그 제거
+                                .replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, '[이미지 데이터]') // Base64 이미지 데이터를 간단한 텍스트로 교체
+                                .replace(/\n+/g, ' ') // 여러 줄바꿈을 공백으로 교체
+                                .trim();
+                              
+                              return cleanDescription.slice(0, 200) + (cleanDescription.length > 200 ? '...' : '');
+                            })()}
+                          </>
+                        ) : (
+                          '설명이 없습니다.'
+                        )}
+                      </a>
                     </p>
                     
                     {user && safeKeywords.length > 0 && (
@@ -1211,6 +1309,7 @@ export default function RSSFeedPage() {
                               className="keyword-delete-btn"
                               disabled={!!updatingKeyword[item.guid]}
                               aria-label={`키워드 ${k} 삭제`}
+                              data-clarity-tag="rss-feed-keyword-delete-item"
                             >
                               ×
                             </button>
@@ -1233,6 +1332,7 @@ export default function RSSFeedPage() {
                           onClick={() => handleAddKeyword(item.guid)}
                           className="add-keyword-btn"
                           disabled={!!updatingKeyword[item.guid]}
+                          data-clarity-tag="rss-feed-keyword-add-item"
                         >
                           {updatingKeyword[item.guid] ? '저장중...' : '추가'}
                         </button>
@@ -1241,6 +1341,7 @@ export default function RSSFeedPage() {
                           onClick={() => handleDeleteItem(item.guid)}
                           className="delete-item-btn"
                           disabled={!!deletingItem[item.guid]}
+                          data-clarity-tag="rss-feed-article-delete"
                         >
                           {deletingItem[item.guid] ? '삭제중...' : '글삭제'}
                         </button>
@@ -1288,6 +1389,7 @@ export default function RSSFeedPage() {
                           }}
                           className="save-newsletter-btn"
                           disabled={!newsletterDates[item.guid] || !!savingNewsletterDate[item.guid]}
+                          data-clarity-tag="rss-feed-newsletter-date-save"
                         >
                           {savingNewsletterDate[item.guid] ? '저장중...' : '저장'}
                         </button>
@@ -1303,6 +1405,7 @@ export default function RSSFeedPage() {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
+                data-clarity-tag="rss-feed-pagination-prev"
               >
                 이전
               </button>
@@ -1322,7 +1425,7 @@ export default function RSSFeedPage() {
                   );
                 } else {
                   pageButtons.push(
-                    <button key={firstPage} onClick={() => handlePageChange(firstPage)}>{firstPage}</button>
+                    <button key={firstPage} onClick={() => handlePageChange(firstPage)} data-clarity-tag="rss-feed-pagination-first">{firstPage}</button>
                   );
                 }
 
@@ -1342,7 +1445,7 @@ export default function RSSFeedPage() {
                     );
                   } else {
                     pageButtons.push(
-                      <button key={i} onClick={() => handlePageChange(i)}>{i}</button>
+                      <button key={i} onClick={() => handlePageChange(i)} data-clarity-tag={`rss-feed-pagination-page-${i}`}>{i}</button>
                     );
                   }
                 }
@@ -1360,7 +1463,7 @@ export default function RSSFeedPage() {
                     );
                   } else {
                     pageButtons.push(
-                      <button key={lastPage} onClick={() => handlePageChange(lastPage)}>{lastPage}</button>
+                      <button key={lastPage} onClick={() => handlePageChange(lastPage)} data-clarity-tag="rss-feed-pagination-last">{lastPage}</button>
                     );
                   }
                 }
@@ -1370,6 +1473,7 @@ export default function RSSFeedPage() {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
+                data-clarity-tag="rss-feed-pagination-next"
               >
                 다음
               </button>

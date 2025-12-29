@@ -5,13 +5,10 @@ const next = require('next');
 const admin = require('firebase-admin');
 const axios = require('axios');
 const fs = require('fs').promises;
-const config = require('./config');
+const functions = require('firebase-functions');
 
 // Firebase Admin SDK 초기화
 admin.initializeApp();
-
-// 환경 설정 로그 출력
-config.logEnvironment();
 
 // Next.js 앱 설정
 const dev = false;
@@ -41,10 +38,24 @@ async function initializeNextApp() {
   return handle;
 }
 
-// Slack 메시지 전송 함수
+// Slack 메시지 전송 함수 (Functions Config 사용)
 async function sendSlackMessage(message, type = 'monitoring') {
   try {
-    const webhookUrl = await config.getSlackWebhookUrl(type);
+    let webhookUrl;
+    
+    // 환경 변수에서 직접 가져오기 (Firebase Functions v2 방식)
+    switch (type) {
+      case 'inquiry':
+        webhookUrl = process.env.SLACK_INQUIRY_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+        break;
+      case 'newsletter':
+        webhookUrl = process.env.SLACK_NEWSLETTER_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+        break;
+      case 'monitoring':
+      default:
+        webhookUrl = process.env.SLACK_MONITORING_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+        break;
+    }
     
     // Slack webhook URL이 설정되지 않은 경우 건너뛰기
     if (!webhookUrl) {
@@ -95,7 +106,8 @@ async function collectRSSFeeds() {
 
 ${result.message}`;
 
-    await sendSlackMessage(slackMessage);
+    // await sendSlackMessage(slackMessage);
+    await sendSlackMessage(slackMessage, 'monitoring');
     console.log('✅ RSS 자동 수집 및 Slack 알림 완료');
     
   } catch (error) {
@@ -113,31 +125,17 @@ ${result.message}`;
   }
 }
 
-
-
-// Firebase Functions 핸들러 - asia-northeast3 리전 설정
+// Firebase Functions 정의
 exports.nextjsFunc = onRequest({
   region: 'asia-northeast3',
   timeoutSeconds: 540,
   memory: '2GiB'
 }, async (req, res) => {
-  console.log('🔍 Firebase Functions 요청 수신:', {
-    url: req.url,
-    method: req.method
-  });
-  
   try {
-    // Next.js 앱 초기화
-    const requestHandler = await initializeNextApp();
-    
-    // Next.js로 요청 전달
-    console.log('🔧 Next.js로 요청 전달');
-    return requestHandler(req, res);
-    
+    const handler = await initializeNextApp();
+    return handler(req, res);
   } catch (error) {
     console.error('❌ Next.js 함수 실행 오류:', error);
-    
-    // 오류 응답
     res.status(500).json({
       error: 'Internal Server Error',
       message: error.message,
@@ -146,7 +144,7 @@ exports.nextjsFunc = onRequest({
   }
 });
 
-// RSS 수집 함수 (별도 엔드포인트) - asia-northeast3 리전 설정
+// RSS 수집 함수
 exports.collectRSS = onRequest({
   region: 'asia-northeast3',
   timeoutSeconds: 540,
@@ -162,7 +160,7 @@ exports.collectRSS = onRequest({
   }
 });
 
-// RSS 자동 수집 스케줄러 - 매일 오전 6시 실행
+// RSS 자동 수집 스케줄러
 exports.scheduledRSSCollection = onSchedule({
   schedule: '0 6 * * *', // 매일 오전 6시 (한국 시간 기준)
   timeZone: 'Asia/Seoul',
@@ -174,8 +172,7 @@ exports.scheduledRSSCollection = onSchedule({
   await collectRSSFeeds();
 });
 
-
-// RSS 수동 수집 함수 (HTTP 트리거)
+// RSS 수동 수집 함수
 exports.manualRSSCollection = onRequest({
   region: 'asia-northeast3',
   timeoutSeconds: 540,
@@ -209,7 +206,6 @@ exports.contactToSlack = onRequest({
     }
     
     const slackMessage = `새로운 문의가 도착했습니다!\n\n이름: ${name}\n이메일: ${email}\n메시지: ${message}`;
-    
     await sendSlackMessage(slackMessage, 'inquiry');
     
     res.json({ success: true, message: '메시지가 성공적으로 전송되었습니다.' });

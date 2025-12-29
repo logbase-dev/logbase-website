@@ -148,7 +148,7 @@ export default function NewsletterSubscribersPage() {
           <h1>뉴스레터 신청자 관리</h1>
           <div>
             <Link href="/newsletter">
-              <button type="button" className="btn-back">뉴스레터 목록</button>
+              <button type="button" className="btn-back" data-clarity-tag="newsletter-subscribers-back-to-list">뉴스레터 목록</button>
             </Link>
           </div>
         </div>
@@ -185,6 +185,7 @@ export default function NewsletterSubscribersPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
+              data-clarity-tag="newsletter-subscribers-search-input"
             />
           </div>
           <div className="filter-group">
@@ -192,6 +193,7 @@ export default function NewsletterSubscribersPage() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
               className="status-filter"
+              data-clarity-tag="newsletter-subscribers-status-filter"
             >
               <option value="all">전체 상태</option>
               <option value="active">활성 구독자</option>
@@ -206,6 +208,7 @@ export default function NewsletterSubscribersPage() {
                 setSearchTerm('');
                 setStatusFilter('all');
               }}
+              data-clarity-tag="newsletter-subscribers-clear-filters"
             >
               필터 초기화
             </button>
@@ -243,6 +246,7 @@ export default function NewsletterSubscribersPage() {
                       type="button"
                       className={`btn-status ${subscriber.status === 'active' ? 'btn-deactivate' : 'btn-activate'}`}
                       onClick={() => handleStatusToggle(subscriber.id, subscriber.status)}
+                      data-clarity-tag="newsletter-subscribers-status-toggle"
                     >
                       {subscriber.status === 'active' ? '비활성화' : '활성화'}
                     </button>
@@ -251,6 +255,7 @@ export default function NewsletterSubscribersPage() {
                       className="btn-delete-subscriber"
                       onClick={() => handleDelete(subscriber.id, subscriber.name)}
                       title={`${subscriber.name} 삭제`}
+                      data-clarity-tag="newsletter-subscribers-delete"
                     >
                       삭제
                     </button>

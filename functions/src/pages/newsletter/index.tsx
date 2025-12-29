@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { SITE_TITLE } from '@/consts';
+import Head from 'next/head';
 
 interface NewsletterMeta {
   title: string;
@@ -224,9 +226,19 @@ export default function NewsletterPage() {
   }
 
   return (
+    <>
+    <Head>
+      <title>{`NEWS LETTER - ${SITE_TITLE}`}</title>
+      <meta name="description" content="뉴스레터 목록 관리 및 뉴스레터 서비스" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <link rel="icon" href="/favicon.svg" />
+    </Head>
+
     <div className="container">
       <div className="header">
-        <h1>뉴스레터 목록</h1>
+        <div style={{ width: '65%', textAlign: 'center' }}>
+          <h1>NEWS LETTER</h1>
+        </div>
         <div className="header-controls">
           {/* 뷰 모드 토글 버튼 */}
           <button
@@ -244,6 +256,7 @@ export default function NewsletterPage() {
               marginRight: '12px',
               fontWeight: '500'
             }}
+            data-clarity-tag="newsletter-view-mode-toggle"
           >
             {viewMode === 'card' ? '📋 목록으로 보기' : '🃏 카드로 보기'}
           </button>
@@ -254,6 +267,7 @@ export default function NewsletterPage() {
                 type="button" 
                 className="btn-subscribers"
                 onClick={() => window.location.href = '/newsletter/subscribers'}
+                data-clarity-tag="newsletter-subscribers-manage"
               >
                 신청자 관리
               </button>
@@ -261,6 +275,7 @@ export default function NewsletterPage() {
                 type="button" 
                 className="btn-new"
                 onClick={() => window.location.href = '/newsletter/write'}
+                data-clarity-tag="newsletter-create-new"
               >
                 새 뉴스레터 작성
               </button>
@@ -292,6 +307,7 @@ export default function NewsletterPage() {
                         className="btn-preview"
                         onClick={() => window.open(item.publicUrl, '_blank')}
                         title="새 창에서 미리보기"
+                        data-clarity-tag="newsletter-preview-list"
                       >
                         미리보기
                       </button>
@@ -302,16 +318,18 @@ export default function NewsletterPage() {
                             className="btn-send"
                             onClick={() => handleSendClick(item)}
                             title="이메일 발송"
+                            data-clarity-tag="newsletter-send-list"
                           >
                             📧 발송
                           </button>
                           <Link href={`/newsletter/edit/${encodeURIComponent(item.filename)}`}>
-                            <button type="button" className="btn-edit">편집</button>
+                            <button type="button" className="btn-edit" data-clarity-tag="newsletter-edit-list">편집</button>
                           </Link>
                           <button 
                             type="button" 
                             className="btn-delete"
                             onClick={() => handleDelete(item.filename)}
+                            data-clarity-tag="newsletter-delete-list"
                           >
                             삭제
                           </button>
@@ -350,6 +368,7 @@ export default function NewsletterPage() {
                     className="btn-preview"
                     onClick={() => window.open(item.publicUrl, '_blank')}
                     title="새 창에서 미리보기"
+                    data-clarity-tag="newsletter-preview-card"
                   >
                     미리보기
                   </button>
@@ -360,16 +379,18 @@ export default function NewsletterPage() {
                         className="btn-send"
                         onClick={() => handleSendClick(item)}
                         title="이메일 발송"
+                        data-clarity-tag="newsletter-send-card"
                       >
                         📧 발송
                       </button>
                       <Link href={`/newsletter/edit/${encodeURIComponent(item.filename)}`}>
-                        <button type="button" className="btn-edit">편집</button>
+                        <button type="button" className="btn-edit" data-clarity-tag="newsletter-edit-card">편집</button>
                       </Link>
                       <button 
                         type="button" 
                         className="btn-delete"
                         onClick={() => handleDelete(item.filename)}
+                        data-clarity-tag="newsletter-delete-card"
                       >
                         삭제
                       </button>
@@ -427,6 +448,7 @@ export default function NewsletterPage() {
                 className="btn-close"
                 onClick={() => setShowSendModal(false)}
                 disabled={sending}
+                data-clarity-tag="newsletter-send-modal-close"
               >
                 ×
               </button>
@@ -444,6 +466,7 @@ export default function NewsletterPage() {
                     onChange={handleSendFormChange}
                     required
                     disabled={sending}
+                    data-clarity-tag="newsletter-send-subject-input"
                   />
                 </div>
 
@@ -458,6 +481,7 @@ export default function NewsletterPage() {
                       onChange={handleSendFormChange}
                       required
                       disabled={sending}
+                      data-clarity-tag="newsletter-send-fromname-input"
                     />
                   </div>
                   <div className="form-group">
@@ -470,6 +494,7 @@ export default function NewsletterPage() {
                       onChange={handleSendFormChange}
                       required
                       disabled={sending}
+                      data-clarity-tag="newsletter-send-fromemail-input"
                     />
                   </div>
                 </div>
@@ -497,6 +522,7 @@ export default function NewsletterPage() {
                           height: '16px',
                           margin: '0'
                         }}
+                        data-clarity-tag="newsletter-send-select-all-recipients"
                       />
                       <span>전체 선택 ({allRecipients.length}명)</span>
                     </label>
@@ -558,6 +584,7 @@ export default function NewsletterPage() {
                                   marginTop: '2px',
                                   flexShrink: '0'
                                 }}
+                                data-clarity-tag="newsletter-send-recipient-checkbox"
                               />
                               <div style={{ flex: '1', minWidth: '0' }}>
                                 <div style={{ marginBottom: '3px' }}>
@@ -596,6 +623,7 @@ export default function NewsletterPage() {
                   className="btn-cancel"
                   onClick={() => setShowSendModal(false)}
                   disabled={sending}
+                  data-clarity-tag="newsletter-send-modal-cancel"
                 >
                   취소
                 </button>
@@ -603,6 +631,7 @@ export default function NewsletterPage() {
                   type="submit" 
                   className="btn-send-confirm"
                   disabled={sending || sendFormData.recipients.length === 0}
+                  data-clarity-tag="newsletter-send-confirm"
                 >
                   {sending ? '발송 중...' : `${sendFormData.recipients.length}명에게 발송`}
                 </button>
@@ -848,5 +877,6 @@ export default function NewsletterPage() {
         }
       `}</style>
     </div>
+    </>
   );
 } 

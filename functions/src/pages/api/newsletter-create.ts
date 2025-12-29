@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { adminBucket } from '@/lib/firebase-admin';
+import { adminDb, adminBucket } from '@/lib/firebase-admin';
 import { generateUnsubscribeUrl } from '@/lib/newsletter-utils';
 
 // 런타임 환경 감지를 위한 설정

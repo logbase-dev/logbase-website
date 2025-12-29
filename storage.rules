@@ -1,0 +1,28 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 뉴스레터 파일들에 대한 규칙
+    match /newsletters/{allPaths=**} {
+      // 모든 사용자가 읽기 가능 (미리보기용)
+      allow read: if true;
+      
+      // Admin SDK를 통한 쓰기 허용 (서버 사이드)
+      allow write: if true;
+    }
+    
+    // 블로그 이미지 파일들에 대한 규칙
+    match /blog-images/{allPaths=**} {
+      // 모든 사용자가 읽기 가능 (미리보기용)
+      allow read: if true;
+      
+      // Admin SDK를 통한 쓰기 허용 (서버 사이드)
+      allow write: if true;
+    }
+    
+    // 기타 파일들에 대한 기본 규칙
+    match /{allPaths=**} {
+      // 기본적으로 모든 접근 거부
+      allow read, write: if false;
+    }
+  }
+} 

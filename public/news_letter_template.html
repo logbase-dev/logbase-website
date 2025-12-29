@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>{{제목}}</title>
+  <title>{{title}}</title>
 </head>
 <body>
 
@@ -26,7 +26,7 @@
       <!-- 타이틀/소개 영역 시작 -->
       <tr>
         <td style="background-color:#C0C0C0;text-align:center;padding:30px 20px">
-          <h1 style="color:#000000;font-family:Arial,sans-serif;font-size:28px;font-weight:bold;margin:0;text-transform:uppercase;letter-spacing:1px">{{제목}}</h1>
+          <h1 style="color:#000000;font-family:Arial,sans-serif;font-size:28px;font-weight:bold;margin:0;text-transform:uppercase;letter-spacing:1px">{{title}}</h1>
           <p style="color:rgba(0,0,0,0.8);font-family:Arial,sans-serif;font-size:16px;margin:10px 0 0 0">행동데이터에 대한 모든 지식의 거점이자 소통의 시작</p>
         </td>
       </tr>
@@ -37,7 +37,7 @@
         <td style="padding: 30px 0px 20px 0px;">
           <div style="background-color: #f0fdfa; border-left: 3px solid #0d9488; padding: 20px; border-radius: 0 6px 6px 0;">
             <p style="margin: 0; font-family: Arial, sans-serif; font-size: 16px; color: #0f766e; line-height: 1.6;">
-              안녕하세요, <strong>{{구독자명}}</strong>님!<br>
+              안녕하세요, <strong>{{name}}</strong>님!<br>
               오늘의 행동데이터 뉴스를 준비했습니다.
             </p>
           </div>
@@ -53,13 +53,13 @@
             <tbody>
               <tr>
                 <td>
-                  <span style="display:inline-block;background-color:#f0fdfa;color:#0d9488;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;padding:5px 15px">{{발송일}}</span>
+                  <span style="display:inline-block;background-color:#f0fdfa;color:#0d9488;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;padding:5px 15px">{{sent_date}}</span>
                 </td>
               </tr>
               <tr>
                 <td style="padding-top:15px">
                   <h2 style="color:#1f2937;font-family:Arial,sans-serif;font-size:24px;font-weight:bold;margin:0">오늘의 데이터 뉴스</h2>
-                  <p style="color:#6b7280;font-family:Arial,sans-serif;font-size:16px;margin:10px 0 0 0"> {{본문 내용 들어가는 곳}}</p>
+                  <p style="color:#6b7280;font-family:Arial,sans-serif;font-size:16px;margin:10px 0 0 0"> {{content}}</p>
                 </td>
               </tr>
             </tbody>
@@ -121,7 +121,7 @@
                       <p style="color:#64748b;font-family:Arial,sans-serif;font-size:13px;margin:0 0 15px 0">
                         <a href="https://logbase.kr" style="color:#64748b;text-decoration:none;margin:0 8px" target="_blank">로그베이스 홈페이지</a>
                         <span style="color:#cbd5e1">|</span>
-                        <a href="mailto:info@logbase.kr" style="color:#64748b;text-decoration:none;margin:0 8px" target="_blank">피드백 보내기</a>
+                        <a href="https://logbase.kr?modal=inquiry" style="color:#64748b;text-decoration:none;margin:0 8px" target="_blank">문의하기</a>
                         <span style="color:#cbd5e1">|</span>
                         <a href="https://logbase.kr/privacy" style="color:#64748b;text-decoration:none;margin:0 8px" target="_blank">개인정보 처리방침</a>
                       </p>
@@ -136,7 +136,7 @@
                               <p style="color:#64748b;font-family:Arial,sans-serif;font-size:13px;margin:0 0 10px 0;text-align:center">
                                 더 이상 뉴스레터를 받고 싶지 않으시면 아래 버튼을 클릭하세요
                               </p>
-                              <a href="https://logbase.kr/unsubscribe" style="display:inline-block;background-color:#f1f5f9;border:1px solid #cbd5e1;color:#475569;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;text-decoration:none;padding:8px 20px" target="_blank">
+                              <a href="{{UNSUBSCRIBE_URL}}" style="display:inline-block;background-color:#f1f5f9;border:1px solid #cbd5e1;color:#475569;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;text-decoration:none;padding:8px 20px" target="_blank">
                                 구독 취소하기
                               </a>
                             </td>

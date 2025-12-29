@@ -598,12 +598,13 @@ export default function PrivacyPage() {
               }}>
                 <span>✉️</span>
                 <a 
-                  href="mailto:team@hurdlers.kr"
+                  href="mailto:info@logbase.kr"
                   style={{
                     color: '#4299e1',
                     textDecoration: 'none',
                     fontWeight: '500'
                   }}
+                  data-clarity-tag="privacy-contact-email"
                 >
                   info@logbase.kr
                 </a>
@@ -629,7 +630,9 @@ export default function PrivacyPage() {
                 color: '#4299e1',
                 textDecoration: 'none',
                 fontSize: '1rem'
-              }}>
+              }}
+              data-clarity-tag="privacy-back-to-home"
+              >
                 홈
               </Link>
               <span style={{ color: '#cbd5e0' }}>|</span>

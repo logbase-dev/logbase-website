@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
-import { adminBucket } from '@/lib/firebase-admin';
+import { adminDb, adminBucket } from '@/lib/firebase-admin';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -78,8 +78,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    let deletedItems = [];
-    let errors = [];
+    const deletedItems = [];
+    const errors = [];
 
     try {
       // 1. HTML 파일이 있으면 삭제
@@ -99,8 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (isFirebaseFunctions) {
           // Firebase 서버에서는 Cloud Storage에 저장
           console.log('[NEWSLETTER-DELETE] Firebase Functions 환경에서 Cloud Storage 사용');
-          try {
-            const jsonFile = adminBucket.file('newsletters/newsletters.json');
+          try {            const jsonFile = adminBucket.file('newsletters/newsletters.json');
             await jsonFile.save(JSON.stringify(filteredArr, null, 2), {
               metadata: { contentType: 'application/json' }
             });
